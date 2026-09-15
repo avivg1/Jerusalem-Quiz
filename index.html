@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מיליון על ירושלים · חידון תשרי תשפ״ז</title>
+<meta name="description" content="חידון ירושלים בסגנון מי רוצה להיות מיליונר — 15 שאלות עד מיליון שקל.">
+<meta name="theme-color" content="#0B1030">
+<meta property="og:title" content="מיליון על ירושלים">
+<meta property="og:description" content="חידון ירושלים — 15 שאלות עד מיליון שקל. נסו את מזלכם.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night:#0B1030; --night-2:#151C4A; --stone:#EFE2C4; --stone-dim:#B9AC92;
+    --gold:#E3A72C; --gold-soft:#F2C766; --olive:#6E8C56;
+  }
+  * , *::before, *::after { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body {
+    font-family:'Heebo', system-ui, 'Segoe UI', Arial, sans-serif;
+    color:var(--stone);
+    background:
+      radial-gradient(120% 70% at 50% -10%, #2A3378 0%, rgba(42,51,120,0) 60%),
+      linear-gradient(180deg, var(--night) 0%, #070B22 100%);
+    background-attachment: fixed;
+    min-height:100vh; padding:18px 14px 44px;
+  }
+  h1,h2,h3,.q-text,.prize-now { font-family:'Frank Ruhl Libre','Frank Ruehl CLM',Georgia,serif; font-weight:700; margin:0; }
+  button { font-family:inherit; cursor:pointer; }
+  button:focus-visible, input:focus-visible { outline:3px solid var(--gold-soft); outline-offset:3px; }
+  .wrap { max-width:720px; margin:0 auto; }
+  .screen { display:none; }
+  .screen.on { display:block; }
+
+  .hero { text-align:center; padding-top:6px; }
+  .skyline { width:100%; max-width:420px; height:auto; display:block; margin:0 auto 4px; }
+  .skyline .ln { fill:none; stroke:var(--gold); stroke-width:2.2; stroke-linejoin:round; stroke-linecap:round; }
+  .skyline .fl { fill:var(--gold); opacity:.18; }
+  .skyline .star { fill:var(--stone); opacity:.55; }
+  .hero h1 { font-size:clamp(30px,9vw,46px); line-height:1.1; letter-spacing:-.5px; }
+  .hero .sub { font-size:15px; color:var(--stone-dim); margin-top:8px; font-weight:300; }
+  .hero .sub b { color:var(--gold-soft); font-weight:500; }
+
+  .panel {
+    background:linear-gradient(180deg, rgba(34,43,107,.75), rgba(21,28,74,.75));
+    border:1px solid rgba(227,167,44,.28); border-radius:16px; padding:16px; margin-top:18px;
+  }
+  .panel h3 { font-size:18px; color:var(--gold-soft); margin-bottom:10px; }
+  .panel .head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .panel .head h3 { margin:0; }
+
+  .field { display:flex; gap:8px; margin-top:14px; }
+  .field input {
+    flex:1; min-width:0; background:rgba(11,16,48,.8);
+    border:1px solid rgba(239,226,196,.28); border-radius:12px;
+    color:var(--stone); padding:14px 16px; font-size:17px;
+  }
+  .field input::placeholder { color:rgba(185,172,146,.7); }
+
+  .btn {
+    border:none; border-radius:12px; padding:15px 22px; font-size:17px; font-weight:700; color:#1A1204;
+    background:linear-gradient(180deg,var(--gold-soft),var(--gold));
+    box-shadow:0 6px 0 #9A6F14; transition:transform .08s ease, box-shadow .08s ease;
+  }
+  .btn:active { transform:translateY(4px); box-shadow:0 2px 0 #9A6F14; }
+  .btn.block { width:100%; margin-top:14px; }
+  .btn.ghost { background:transparent; color:var(--stone-dim); border:1px solid rgba(239,226,196,.3); box-shadow:none; font-weight:400; font-size:15px; }
+  .btn.ghost:active { transform:none; }
+  .btn.tiny { padding:6px 13px; font-size:13.5px; border-radius:999px; }
+  .btn.green { background:linear-gradient(180deg,#7BC47F,#4E9E5B); box-shadow:0 6px 0 #2F6A3A; color:#08240F; }
+  .btn.green:active { box-shadow:0 2px 0 #2F6A3A; }
+  .btn[disabled] { opacity:.4; pointer-events:none; }
+
+  .toggle-row { display:flex; align-items:center; gap:10px; margin-top:14px; font-size:15px; color:var(--stone-dim); }
+  .toggle-row input { width:20px; height:20px; accent-color:var(--gold); }
+
+  .rules { font-size:14.5px; line-height:1.75; color:var(--stone-dim); font-weight:300; }
+  .rules span { color:var(--gold-soft); }
+
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+  .step { font-size:14px; color:var(--stone-dim); }
+  .prize-now { font-size:24px; color:var(--gold-soft); }
+  .timer { font-size:15px; font-variant-numeric:tabular-nums; border:1px solid rgba(239,226,196,.28); border-radius:999px; padding:5px 13px; min-width:56px; text-align:center; }
+  .timer.warn { color:#FFB4A0; border-color:rgba(192,91,51,.8); background:rgba(179,45,60,.18); }
+
+  .qcard { background:linear-gradient(180deg, rgba(34,43,107,.9), rgba(17,23,62,.9)); border:1px solid rgba(227,167,44,.35); border-radius:18px; padding:22px 18px; text-align:center; }
+  .q-text { font-size:clamp(19px,5.2vw,25px); line-height:1.45; color:#fff; }
+
+  .answers { display:grid; gap:10px; margin-top:14px; }
+  .ans {
+    display:flex; align-items:center; gap:12px; width:100%; text-align:right;
+    background:linear-gradient(180deg, rgba(34,43,107,.85), rgba(21,28,74,.85));
+    border:1px solid rgba(239,226,196,.22); border-radius:14px; padding:14px 15px;
+    color:var(--stone); font-size:17px; line-height:1.35;
+    transition:background .15s ease, border-color .15s ease, transform .08s ease;
+  }
+  .ans .tag { flex:none; width:30px; height:30px; border-radius:8px; display:grid; place-items:center; font-weight:700; font-size:16px; background:rgba(227,167,44,.14); color:var(--gold-soft); border:1px solid rgba(227,167,44,.4); }
+  .ans .txt { flex:1; }
+  .ans:active { transform:scale(.985); }
+  .ans.picked { background:linear-gradient(180deg,#3A2E6E,#2B2158); border-color:var(--gold-soft); }
+  .ans.picked .tag { background:var(--gold); color:#1A1204; }
+  .ans.right { background:linear-gradient(180deg,#2E6B45,#1F4A30); border-color:#78C88F; color:#EAFBEF; }
+  .ans.right .tag { background:#78C88F; color:#0C2416; border-color:#78C88F; }
+  .ans.wrong { background:linear-gradient(180deg,#7A2331,#521622); border-color:#E0748A; color:#FFE6EA; }
+  .ans.wrong .tag { background:#E0748A; color:#3A0B14; border-color:#E0748A; }
+  .ans.gone { opacity:.16; pointer-events:none; }
+  .ans[disabled] { pointer-events:none; }
+  .ans .bar { flex:none; width:42px; font-size:13px; text-align:left; color:var(--gold-soft); font-variant-numeric:tabular-nums; display:none; }
+  .answers.voted .ans .bar { display:block; }
+
+  .lifelines { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px; }
+  .life { background:rgba(11,16,48,.7); border:1px solid rgba(227,167,44,.4); border-radius:999px; padding:11px 6px; color:var(--gold-soft); font-size:14px; font-weight:500; }
+  .life.used { opacity:.28; text-decoration:line-through; pointer-events:none; }
+
+  .note { margin-top:12px; font-size:14px; color:var(--stone-dim); background:rgba(110,140,86,.14); border:1px solid rgba(110,140,86,.45); border-radius:12px; padding:10px 12px; display:none; }
+  .note.on { display:block; }
+
+  .walk { display:flex; gap:8px; margin-top:12px; }
+  .walk .btn { flex:1; }
+
+  .ladder-toggle { width:100%; margin-top:12px; }
+  .ladder { display:none; margin-top:10px; }
+  .ladder.on { display:block; }
+  .ladder ol { list-style:none; margin:0; padding:0; }
+  .ladder li { display:flex; justify-content:space-between; align-items:center; padding:7px 12px; border-radius:8px; font-size:15px; color:var(--stone-dim); font-variant-numeric:tabular-nums; }
+  .ladder li.safe { color:var(--stone); background:rgba(110,140,86,.16); }
+  .ladder li.done { color:rgba(185,172,146,.45); }
+  .ladder li.now { background:linear-gradient(90deg,var(--gold),var(--gold-soft)); color:#1A1204; font-weight:700; }
+  .ladder li .n { opacity:.7; font-size:13px; }
+  .ladder li.now .n { opacity:.8; }
+
+  .endcard { text-align:center; padding:26px 18px; }
+  .endcard .verdict { font-size:17px; color:var(--stone-dim); }
+  .endcard .amount { font-family:'Frank Ruhl Libre',Georgia,serif; font-size:clamp(40px,13vw,64px); color:var(--gold-soft); line-height:1.1; margin:8px 0 4px; }
+  .endcard .detail { font-size:15px; color:var(--stone-dim); }
+  .endcard .correct-was { margin-top:14px; font-size:15.5px; line-height:1.6; }
+  .endcard .correct-was b { color:var(--gold-soft); }
+  .pb { margin-top:14px; font-size:15px; background:rgba(110,140,86,.16); border:1px solid rgba(110,140,86,.5); border-radius:12px; padding:10px 12px; color:#D6EBC6; display:none; }
+  .pb.on { display:block; }
+
+  .board { margin:0; padding:0; list-style:none; }
+  .board li { display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid rgba(239,226,196,.12); font-size:15.5px; }
+  .board li:last-child { border-bottom:none; }
+  .board .rank { flex:none; width:26px; color:var(--gold-soft); font-weight:700; font-variant-numeric:tabular-nums; }
+  .board .who { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .board .games { flex:none; font-size:12.5px; color:rgba(185,172,146,.75); }
+  .board .amt { flex:none; color:var(--stone); font-variant-numeric:tabular-nums; }
+  .board li.me { background:rgba(227,167,44,.12); border-radius:8px; }
+  .board li.gap { justify-content:center; color:rgba(185,172,146,.5); border:none; padding:2px; }
+  .empty { font-size:14.5px; color:var(--stone-dim); font-weight:300; line-height:1.6; }
+  .live { font-size:12.5px; color:rgba(185,172,146,.75); margin:6px 0 0; }
+
+  .footnote { margin-top:18px; font-size:12.5px; color:rgba(185,172,146,.7); text-align:center; line-height:1.6; font-weight:300; }
+  .flash { animation:flash .55s steps(2) 3; }
+  @keyframes flash { 50% { opacity:.35; } }
+  @media (prefers-reduced-motion:reduce) { *, *::before { animation:none !important; transition:none !important; } }
+  @media (min-width:620px) { .answers { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section id="s-start" class="screen on">
+    <div class="hero">
+      <svg class="skyline" viewBox="0 0 400 130" role="img" aria-label="קו הרקיע של ירושלים">
+        <circle class="star" cx="42" cy="18" r="1.6"/><circle class="star" cx="96" cy="10" r="1.2"/>
+        <circle class="star" cx="318" cy="16" r="1.5"/><circle class="star" cx="366" cy="28" r="1.1"/>
+        <circle class="star" cx="250" cy="9" r="1.2"/>
+        <path class="fl" d="M160 62c0-18 13-30 30-30s30 12 30 30z"/>
+        <path class="ln" d="M160 62c0-18 13-30 30-30s30 12 30 30"/>
+        <path class="ln" d="M190 32v-9"/><path class="ln" d="M184 23h12"/>
+        <path class="ln" d="M154 62h72v10h-72z"/>
+        <path class="ln" d="M166 72v34M190 72v34M214 72v34"/>
+        <path class="ln" d="M6 106V78h6v-6h6v6h6v-6h6v6h6v-6h6v6h6v-6h6v6h6v28"/>
+        <path class="ln" d="M60 106V52h26v54"/>
+        <path class="ln" d="M64 52v-7h6v7M76 52v-7h6v7"/>
+        <path class="ln" d="M96 106V66c0-8 5-13 11-13s11 5 11 13v40"/>
+        <path class="ln" d="M107 53v-8"/>
+        <path class="ln" d="M124 106V84h6v-6h6v6h6v-6h6v6h6v22"/>
+        <path class="ln" d="M240 106V80h24v26"/>
+        <path class="ln" d="M276 106V60l11-14 11 14v46"/>
+        <path class="ln" d="M287 46v-8"/>
+        <path class="ln" d="M310 106V82h6v-6h6v6h6v-6h6v6h6v-6h6v6h6v-6h6v6h6v24"/>
+        <path class="ln" d="M0 106h400" stroke-width="2.6"/>
+      </svg>
+      <h1>מיליון על ירושלים</h1>
+      <p class="sub">חידון תשרי תשפ״ז · <b>15 שאלות</b> עד מיליון שקל · <span id="bank-size"></span> שאלות במאגר</p>
+    </div>
+
+    <div class="panel">
+      <h3>מי משחק?</h3>
+      <div class="field"><input id="name" type="text" maxlength="18" placeholder="השם שלך" autocomplete="off"></div>
+      <label class="toggle-row"><input id="usetimer" type="checkbox" checked> טיימר של 45 שניות לשאלה</label>
+      <button id="go" class="btn block">יוצאים לדרך</button>
+      <p class="note" id="mynote"></p>
+    </div>
+
+    <div class="panel">
+      <div class="head">
+        <h3 id="board-title">טבלת השיאים</h3>
+        <button id="refresh" class="btn ghost tiny">רענון</button>
+      </div>
+      <ul id="board-start" class="board"></ul>
+      <p id="board-start-empty" class="empty">עוד אף אחד לא שיחק. תהיו הראשונים.</p>
+      <p class="live" id="live-note"></p>
+    </div>
+
+    <div class="panel">
+      <h3>איך זה עובד</h3>
+      <p class="rules">
+        מטפסים שאלה־שאלה בסולם הפרסים. תשובה נכונה — עולים שלב.<br>
+        <span>תחנות מבטחות</span> בשאלה 5 ובשאלה 10: מה שצברתם עד שם נשאר שלכם גם אם תיפלו.<br>
+        <span>שלושה גלגלי הצלה</span>: חצי־חצי, שאלת הקהל, והחלפת שאלה — אחד מכל סוג למשחק.<br>
+        אפשר לפרוש בכל רגע ולקחת את הסכום שצברתם.<br>
+        כל משחק שולף 15 שאלות חדשות מהמאגר, כך שאף סיבוב לא זהה לקודמו.
+      </p>
+    </div>
+
+    <p class="footnote">אפשר לשחק בכל דפדפן, בלי הרשמה ובלי התקנה.</p>
+  </section>
+
+  <section id="s-game" class="screen">
+    <div class="topbar">
+      <div>
+        <div class="step">שאלה <span id="qnum">1</span> מתוך 15</div>
+        <div class="prize-now" id="prize">₪100</div>
+      </div>
+      <div class="timer" id="timer">45</div>
+    </div>
+    <div class="qcard"><p class="q-text" id="qtext"></p></div>
+    <div class="answers" id="answers"></div>
+    <div class="note" id="aud-note"></div>
+    <div class="lifelines">
+      <button class="life" id="l-fifty">חצי־חצי</button>
+      <button class="life" id="l-aud">שאלת הקהל</button>
+      <button class="life" id="l-skip">החלפת שאלה</button>
+    </div>
+    <div class="walk"><button class="btn ghost" id="walkaway">פורש עם ₪<span id="walk-amt">0</span></button></div>
+    <button class="btn ghost ladder-toggle" id="ladder-btn">סולם הפרסים</button>
+    <div class="ladder panel" id="ladder"><ol id="ladder-list"></ol></div>
+  </section>
+
+  <section id="s-end" class="screen">
+    <div class="panel endcard">
+      <p class="verdict" id="verdict"></p>
+      <p class="amount" id="final"></p>
+      <p class="detail" id="detail"></p>
+      <p class="correct-was" id="correct-was"></p>
+      <p class="pb" id="pb"></p>
+      <button id="share" class="btn green block">שיתוף התוצאה בוואטסאפ</button>
+      <button id="again" class="btn block">עוד סיבוב</button>
+    </div>
+    <div class="panel">
+      <div class="head">
+        <h3>טבלת השיאים</h3>
+        <button id="refresh2" class="btn ghost tiny">רענון</button>
+      </div>
+      <ul id="board-end" class="board"></ul>
+      <p id="board-end-empty" class="empty"></p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ======================================================================
+     הגדרות
+     ----------------------------------------------------------------------
+     LEADERBOARD_URL — כתובת של שירות טבלת שיאים משותפת (Google Apps Script).
+     אם משאירים ריק, כל שחקן רואה רק את השיאים שלו במכשיר שלו,
+     ואפשר לשתף תוצאות דרך כפתור הוואטסאפ.
+     הוראות להקמת השירות נמצאות בהערה בתחתית הקובץ.
+     ====================================================================== */
+  var LEADERBOARD_URL = "";
+
+  /* ======================================================================
+     מאגר השאלות. להוספת שאלה: העתיקו שורה והחליפו תוכן.
+     q = השאלה · a = ארבע התשובות · c = מיקום התשובה הנכונה (0 = ראשונה)
+     שאלות מהקובץ המקורי מסומנות ב־★
+     ====================================================================== */
+  var BANK = {
+    easy: [
+      /* ★ */ { q: "מי בנה את בית המקדש הראשון?", a: ["דוד המלך", "שלמה המלך", "הורדוס", "עזרא הסופר"], c: 1 },
+      /* ★ */ { q: "מי טבע את המשפט ההיסטורי ״הר הבית בידינו״?", a: ["יצחק רבין", "מוטה גור", "עוזי נרקיס", "משה דיין"], c: 1 },
+      /* ★ */ { q: "לפי חוק עירוני, באיזה חומר חייבים לצפות כל בניין חדש בירושלים?", a: ["בטון חשוף", "אבן ירושלמית", "לבנים אדומות", "שיש לבן"], c: 1 },
+      /* ★ */ { q: "מה שמו של ראש העיר הנוכחי של ירושלים?", a: ["ניר ברקת", "משה ליאון", "אורי לופוליאנסקי", "עופר ברקוביץ׳"], c: 1 },
+      /* ★ */ { q: "מה שמו של נשיא המדינה כיום?", a: ["ראובן ריבלין", "יצחק הרצוג", "שמעון פרס", "אפרים קציר"], c: 1 },
+      { q: "לכמה רבעים מחולקת העיר העתיקה בירושלים?", a: ["שניים", "שלושה", "ארבעה", "שישה"], c: 2 },
+      { q: "מי בנה את חומות העיר העתיקה העומדות על תילן עד היום?", a: ["הורדוס", "סולימאן המפואר", "דוד המלך", "הצלבנים"], c: 1 },
+      { q: "איך נקרא השוק הגדול במרכז ירושלים?", a: ["שוק הכרמל", "מחנה יהודה", "שוק תלפיות", "שוק הפשפשים"], c: 1 },
+      { q: "איזה הר משקיף על העיר העתיקה ממזרח?", a: ["הר הרצל", "הר הצופים", "הר הזיתים", "הר גילֹה"], c: 2 },
+      { q: "מה שמו של הגשר בכניסה לעיר שתכנן סנטיאגו קלטרווה?", a: ["גשר המיתרים", "גשר הקשת", "גשר הצופים", "גשר יפו"], c: 0 },
+      { q: "מי המלך שהפך את ירושלים לבירת ממלכת ישראל?", a: ["שאול", "דוד", "שלמה", "חזקיהו"], c: 1 },
+      { q: "באיזה חג של חודש תשרי עלו לרגל לירושלים?", a: ["פסח", "שבועות", "סוכות", "חנוכה"], c: 2 },
+      { q: "איזו מצודה ניצבת בעיר העתיקה סמוך לשער יפו?", a: ["מגדל דוד", "מגדל שלום", "מצודת אנטוניה", "מגדל הפעמון"], c: 0 },
+      { q: "מהו המקום הקדוש ביותר שבו מתפללים יהודים בירושלים?", a: ["הר הרצל", "הכותל המערבי", "קבר רחל", "הר הצופים"], c: 1 },
+      { q: "מה שמה של מערכת התחבורה המסילתית שנפתחה בירושלים ב־2011?", a: ["הרכבת הקלה", "המטרו", "הרכבת התחתית", "הרכבת הכבדה"], c: 0 },
+      { q: "מה שמו של אתר ההנצחה הלאומי לשואה, הנמצא בירושלים?", a: ["בית התפוצות", "יד ושם", "מוזיאון הכנסת", "היכל הזיכרון"], c: 1 },
+      { q: "מהו המוזיאון הלאומי הגדול של ישראל, השוכן בירושלים?", a: ["מוזיאון תל אביב", "מוזיאון ישראל", "מוזיאון המדע", "מגדל דוד"], c: 1 },
+      { q: "היכן יושבת הכנסת?", a: ["בגבעת רם, ירושלים", "ברמת גן", "בהר הצופים", "בעיר העתיקה"], c: 0 },
+      { q: "מה שמו של המדרחוב המרכזי והוותיק במרכז ירושלים?", a: ["רחוב הרצל", "רחוב בן יהודה", "רחוב אגריפס", "רחוב הנביאים"], c: 1 },
+      { q: "מה שמו של בית החולים בירושלים המפורסם בחלונות הוויטראז׳ של שאגאל?", a: ["שערי צדק", "הדסה עין כרם", "ביקור חולים", "אלישע"], c: 1 }
+    ],
+    medium: [
+      /* ★ */ { q: "מה שם השכונה היהודית הראשונה שהוקמה מחוץ לחומות?", a: ["נחלת שבעה", "משכנות שאננים", "מאה שערים", "ימין משה"], c: 1 },
+      /* ★ */ { q: "באיזו שנה הוקמה משכנות שאננים, השכונה הראשונה מחוץ לחומות?", a: ["1820", "1860", "1890", "1910"], c: 1 },
+      /* ★ */ { q: "מה היה תפקידו של מוטה גור במלחמת ששת הימים?", a: ["רמטכ״ל", "מפקד חטיבת הצנחנים 55", "אלוף פיקוד המרכז", "שר הביטחון"], c: 1 },
+      /* ★ */ { q: "מה שמה של הנקבה העתיקה שחצב המלך חזקיהו לקראת המצור?", a: ["אמת המים של פילטוס", "נקבת השילוח", "מנהרות הכותל", "בריכת הסולטן"], c: 1 },
+      /* ★ */ { q: "כמה שערים יש בחומת העיר העתיקה?", a: ["שישה", "שבעה", "שמונה", "עשרה"], c: 2 },
+      /* ★ */ { q: "מה שמו של ראש העיר שפיתח את ירושלים אחרי מלחמת ששת הימים?", a: ["טדי קולק", "מרדכי איש שלום", "אהוד אולמרט", "דניאל אוסטר"], c: 0 },
+      /* ★ */ { q: "כמה שנים כיהן טדי קולק כראש עיריית ירושלים?", a: ["12", "20", "28", "35"], c: 2 },
+      /* ★ */ { q: "איזה בעל חיים מופיע בסמל עיריית ירושלים?", a: ["נשר", "אריה", "יונה", "צבי"], c: 1 },
+      /* ★ */ { q: "מה מקיף את האריה בסמל עיריית ירושלים משני צדדיו?", a: ["ענפי זית", "שיבולים", "מנורות", "כוכבים"], c: 0 },
+      /* ★ */ { q: "באיזו שכונה בירושלים שוכן בית הנשיא?", a: ["רחביה", "טלביה", "בקעה", "ימין משה"], c: 1 },
+      /* ★ */ { q: "מי העניק ליצחק הרצוג את הכינוי ״בוז׳י״?", a: ["אביו חיים", "אמו אורה", "חבריו בצבא", "סבו הרב"], c: 1 },
+      /* ★ */ { q: "האם אזרחים יכולים לבקר בבית הנשיא?", a: ["לא, הוא סגור לחלוטין", "כן, בסיורים מודרכים בהרשמה מראש", "רק שגרירים", "רק ביום העצמאות"], c: 1 },
+      { q: "מי יזם ומימן את הקמת השכונה הראשונה מחוץ לחומות?", a: ["אליעזר בן־יהודה", "משה מונטיפיורי", "הברון רוטשילד", "תיאודור הרצל"], c: 1 },
+      { q: "איזה מבנה סימן את משכנות שאננים והפך לסמל השכונה?", a: ["מגדל שעון", "טחנת רוח", "בית כנסת מכיפה", "מגדל מים"], c: 1 },
+      { q: "באיזה חג נחנך בית המקדש הראשון?", a: ["פסח", "שבועות", "סוכות", "ראש השנה"], c: 2 },
+      { q: "מה שמו של השער האטום בחומה המזרחית של הר הבית?", a: ["שער האשפות", "שער הרחמים", "שער שכם", "שער ציון"], c: 1 },
+      { q: "באיזו שנה אוחדה ירושלים במלחמת ששת הימים?", a: ["1948", "1956", "1967", "1973"], c: 2 },
+      { q: "על איזה הר שוכן בית הקברות הצבאי הלאומי?", a: ["הר הרצל", "הר הצופים", "הר הזיתים", "הר המנוחות"], c: 0 },
+      { q: "איזו אוניברסיטה נחנכה על הר הצופים בשנת 1925?", a: ["הטכניון", "האוניברסיטה העברית", "בצלאל", "אוניברסיטת בר אילן"], c: 1 },
+      { q: "מה שמו של המבנה במוזיאון ישראל שבו מוצגות מגילות מדבר יהודה?", a: ["היכל הספר", "אגף יהדות", "גן הפסלים", "ביתן התרבות"], c: 0 }
+    ],
+    hard: [
+      { q: "כמה פעמים בערך מופיע השם ״ירושלים״ בתנ״ך?", a: ["69", "349", "669", "1,240"], c: 2 },
+      { q: "לפי חז״ל, כמה שמות יש לירושלים?", a: ["שבעה", "שנים־עשר", "שבעים", "מאה"], c: 2 },
+      { q: "באיזו שנה לספירה חרב בית המקדש השני?", a: ["שנת 70", "שנת 132", "שנת 135", "שנת 200"], c: 0 },
+      { q: "מי התיר ליהודים לשוב לירושלים ולבנות את בית המקדש השני?", a: ["נבוכדנצר", "כורש מלך פרס", "אלכסנדר מוקדון", "אנטיוכוס"], c: 1 },
+      { q: "מה היה שמה של ירושלים לאחר דיכוי מרד בר־כוכבא?", a: ["קיסריה", "איליה קפיטולינה", "פלביה", "אנטיוכיה"], c: 1 },
+      { q: "כמה תושבים חיים בירושלים כיום, בקירוב?", a: ["כ־400 אלף", "כ־700 אלף", "כמיליון", "כמיליון וחצי"], c: 2 },
+      { q: "איזה טקס שמחה נערך בעזרת הנשים בלילות חג הסוכות?", a: ["הקהל", "שמחת בית השואבה", "ניסוך היין", "ברכת כהנים"], c: 1 },
+      { q: "מה גובהה של ירושלים מעל פני הים, בקירוב?", a: ["כ־300 מטר", "כ־500 מטר", "כ־800 מטר", "כ־1,200 מטר"], c: 2 },
+      { q: "מי היה המושל הבריטי שהנהיג ב־1918 את התקנה לצפות את בנייני ירושלים באבן?", a: ["אדמונד אלנבי", "רונלד סטורס", "הרברט סמואל", "ארתור ווקופ"], c: 1 },
+      { q: "איזה מעיין סיפק את מימיה של ירושלים הקדומה?", a: ["מעיין הגיחון", "עין כרם", "מעיין השילוח", "עין פארה"], c: 0 },
+      { q: "מה שמו של השער שנפרץ אחרון בחומת העיר העתיקה, במאה ה־19?", a: ["שער יפו", "השער החדש", "שער הפרחים", "שער ציון"], c: 1 },
+      { q: "איזה נחל מפריד בין העיר העתיקה להר הזיתים?", a: ["נחל צופים", "נחל קדרון", "נחל שורק", "נחל רפאים"], c: 1 },
+      { q: "מי היה ראש העיר היהודי הראשון של ירושלים לאחר קום המדינה?", a: ["דניאל אוסטר", "גרשון אגרון", "יצחק קריב", "מרדכי איש שלום"], c: 0 },
+      { q: "באיזו שנה הכריז דוד בן־גוריון על ירושלים כבירת ישראל?", a: ["1948", "1949", "1950", "1967"], c: 1 },
+      { q: "מה היה ה״קארדו״ שנחשף ברובע היהודי?", a: ["בית מרחץ", "רחוב ראשי רומי־ביזנטי", "מקווה עתיק", "שער סתרים"], c: 1 },
+      { q: "מה אורכה המשוער של נקבת השילוח?", a: ["כ־120 מטר", "כ־290 מטר", "כ־530 מטר", "כ־900 מטר"], c: 2 },
+      { q: "איזו מלכה התגיירה, עלתה לירושלים בימי בית שני ובנתה בה ארמונות?", a: ["הלני המלכה", "שלומציון", "אסתר", "מרים החשמונאית"], c: 0 },
+      { q: "איזה מרד הסתיים בחורבן בית המקדש השני?", a: ["מרד החשמונאים", "המרד הגדול", "מרד בר־כוכבא", "מרד התפוצות"], c: 1 },
+      { q: "מה שמו של בית הכנסת המרכזי ברובע היהודי ששוחזר ונחנך מחדש ב־2010?", a: ["תפארת ישראל", "בית הכנסת ״החורבה״", "הרמב״ן", "ישועות יעקב"], c: 1 },
+      { q: "מהו ״הכותל הקטן״?", a: ["קטע של הכותל המערבי ברובע המוסלמי", "חלק מחומת דוד", "שריד מחומת הצלבנים", "קיר בריכת השילוח"], c: 0 }
+    ]
+  };
+
+  var PRIZES = [100,200,300,500,1000,2000,4000,8000,16000,32000,64000,125000,250000,500000,1000000];
+  var SAFE = [4, 9];
+  var LETTERS = ["א","ב","ג","ד"];
+  var LOCAL_KEY = "jerusalem-quiz-scores-v1";
+  var QTIME = 45, POLL_MS = 20000;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var nis = function (n) { return "₪" + n.toLocaleString("en-US"); };
+
+  function shuffle(arr) {
+    var a = arr.slice(), i, j, t;
+    for (i = a.length - 1; i > 0; i--) { j = Math.floor(Math.random()*(i+1)); t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+  $("bank-size").textContent = BANK.easy.length + BANK.medium.length + BANK.hard.length;
+
+  /* ---------- sound ---------- */
+  var actx = null;
+  function beep(freqs, dur) {
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      freqs.forEach(function (f, i) {
+        var o = actx.createOscillator(), g = actx.createGain();
+        o.type = "triangle"; o.frequency.value = f;
+        var t0 = actx.currentTime + i * dur;
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.14, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        o.connect(g); g.connect(actx.destination);
+        o.start(t0); o.stop(t0 + dur + 0.02);
+      });
+    } catch (e) {}
+  }
+
+  /* ======================================================================
+     שכבת אחסון. שני מצבים:
+     shared  — יש LEADERBOARD_URL, כולם רואים את אותה טבלה
+     local   — אין כתובת, כל מכשיר שומר את השיאים שלו
+     ====================================================================== */
+  var SHARED = !!LEADERBOARD_URL;
+
+  function localRead() {
+    try {
+      var raw = window.localStorage.getItem(LOCAL_KEY);
+      var v = raw ? JSON.parse(raw) : [];
+      return Array.isArray(v) ? v : [];
+    } catch (e) { return []; }
+  }
+  function localWrite(rows) {
+    try { window.localStorage.setItem(LOCAL_KEY, JSON.stringify(rows)); } catch (e) {}
+  }
+
+  function boardLoad() {
+    if (!SHARED) return Promise.resolve(localRead());
+    return fetch(LEADERBOARD_URL, { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (v) { return Array.isArray(v) ? v : []; })
+      .catch(function () { return null; });
+  }
+
+  function boardSave(key, name, score) {
+    if (!SHARED) {
+      var rows = localRead(), mine = null, i, isPB = false;
+      for (i = 0; i < rows.length; i++) if (rows[i].key === key) { mine = rows[i]; break; }
+      if (!mine) { mine = { key:key, name:name, best:score, games:1, t:Date.now() }; rows.push(mine); isPB = score > 0; }
+      else { mine.games++; mine.name = name; mine.t = Date.now(); if (score > mine.best) { mine.best = score; isPB = true; } }
+      rows.sort(function (a,b) { return b.best - a.best || a.t - b.t; });
+      localWrite(rows);
+      return Promise.resolve({ rows: rows, isPB: isPB, best: mine.best });
+    }
+    var url = LEADERBOARD_URL + (LEADERBOARD_URL.indexOf("?") > -1 ? "&" : "?") +
+              "action=save&name=" + encodeURIComponent(name) + "&score=" + score;
+    return fetch(url, { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        rows = Array.isArray(rows) ? rows : [];
+        var mine = null, i;
+        for (i = 0; i < rows.length; i++) if (rows[i].key === key) { mine = rows[i]; break; }
+        return { rows: rows, isPB: !!mine && mine.best === score, best: mine ? mine.best : score };
+      })
+      .catch(function () { return null; });
+  }
+
+  function paintBoard(listId, emptyId, rows, myKey) {
+    var ul = $(listId), em = $(emptyId);
+    if (rows === null) {
+      ul.innerHTML = "";
+      em.textContent = "לא הצלחנו להגיע לטבלה המשותפת. המשחק עצמו עובד רגיל.";
+      em.style.display = ""; return;
+    }
+    if (!rows.length) {
+      ul.innerHTML = "";
+      em.textContent = "עוד אף אחד לא שיחק. תהיו הראשונים.";
+      em.style.display = ""; return;
+    }
+    em.style.display = "none";
+
+    var myRank = -1, i;
+    for (i = 0; i < rows.length; i++) if (myKey && rows[i].key === myKey) { myRank = i; break; }
+
+    function row(r, i) {
+      return '<li class="' + ((myKey && r.key === myKey) ? "me" : "") + '">' +
+             '<span class="rank">' + (i+1) + "</span>" +
+             '<span class="who">' + escapeHtml(r.name) + "</span>" +
+             '<span class="games">' + r.games + " משחקים</span>" +
+             '<span class="amt">' + nis(r.best) + "</span></li>";
+    }
+    var html = rows.slice(0, 10).map(row).join("");
+    if (myRank >= 10) html += '<li class="gap">···</li>' + row(rows[myRank], myRank);
+    ul.innerHTML = html;
+
+    $("live-note").textContent = SHARED
+      ? rows.length + " שחקנים בטבלה המשותפת. מתעדכן אוטומטית."
+      : "טבלה מקומית: מוצגים השיאים שנרשמו במכשיר הזה.";
+  }
+
+  /* ---------- state ---------- */
+  var S = { name:"", key:"", level:0, deck:[], spare:{}, used:{}, locked:false,
+            timerOn:true, left:QTIME, tick:null, lastAmount:0, lastAnswered:0 };
+  var poll = null;
+
+  function buildDeck() {
+    var e = shuffle(BANK.easy), m = shuffle(BANK.medium), h = shuffle(BANK.hard);
+    S.deck = e.slice(0,5).concat(m.slice(0,5), h.slice(0,5));
+    S.spare = { easy:e.slice(5), medium:m.slice(5), hard:h.slice(5) };
+  }
+  function band(level) { return level < 5 ? "easy" : level < 10 ? "medium" : "hard"; }
+  function safeAmount() {
+    var amt = 0, i;
+    for (i = 0; i < SAFE.length; i++) if (S.level > SAFE[i]) amt = PRIZES[SAFE[i]];
+    return amt;
+  }
+  function bankedNow() { return S.level === 0 ? 0 : PRIZES[S.level - 1]; }
+
+  function renderLadder() {
+    var html = "", i;
+    for (i = PRIZES.length - 1; i >= 0; i--) {
+      var cls = i === S.level ? "now" : (i < S.level ? "done" : (SAFE.indexOf(i) > -1 ? "safe" : ""));
+      html += '<li class="' + cls + '"><span class="n">' + (i+1) + '</span><span>' + nis(PRIZES[i]) + "</span></li>";
+    }
+    $("ladder-list").innerHTML = html;
+  }
+
+  function renderQuestion() {
+    var item = S.deck[S.level];
+    S.locked = false;
+    $("qnum").textContent = S.level + 1;
+    $("prize").textContent = nis(PRIZES[S.level]);
+    $("qtext").textContent = item.q;
+    $("walk-amt").textContent = bankedNow().toLocaleString("en-US");
+    $("walkaway").style.display = S.level === 0 ? "none" : "";
+    $("aud-note").classList.remove("on");
+    $("aud-note").textContent = "";
+
+    var box = $("answers");
+    box.className = "answers";
+    box.innerHTML = "";
+    shuffle([0,1,2,3]).forEach(function (origIdx, pos) {
+      var b = document.createElement("button");
+      b.className = "ans";
+      b.dataset.orig = origIdx;
+      b.innerHTML = '<span class="tag">' + LETTERS[pos] + "</span>" +
+                    '<span class="txt">' + escapeHtml(item.a[origIdx]) + "</span>" +
+                    '<span class="bar"></span>';
+      b.addEventListener("click", function () { choose(b, origIdx); });
+      box.appendChild(b);
+    });
+    renderLadder();
+    startTimer();
+  }
+
+  function startTimer() {
+    stopTimer();
+    if (!S.timerOn) { $("timer").style.display = "none"; return; }
+    $("timer").style.display = "";
+    S.left = QTIME;
+    $("timer").textContent = S.left;
+    $("timer").classList.remove("warn");
+    S.tick = setInterval(function () {
+      S.left--;
+      $("timer").textContent = S.left;
+      if (S.left <= 10) $("timer").classList.add("warn");
+      if (S.left <= 0) {
+        stopTimer(); S.locked = true; revealAll(null);
+        setTimeout(function () { finish("timeout"); }, 1800);
+      }
+    }, 1000);
+  }
+  function stopTimer() { if (S.tick) { clearInterval(S.tick); S.tick = null; } }
+
+  function choose(btn, origIdx) {
+    if (S.locked) return;
+    S.locked = true; stopTimer();
+    btn.classList.add("picked");
+    document.querySelectorAll(".ans").forEach(function (b) { b.disabled = true; });
+    beep([440], 0.09);
+    setTimeout(function () {
+      var correct = S.deck[S.level].c;
+      revealAll(origIdx);
+      if (origIdx === correct) {
+        beep([660, 880], 0.12);
+        setTimeout(function () {
+          S.level++;
+          if (S.level >= PRIZES.length) finish("won"); else renderQuestion();
+        }, 1500);
+      } else {
+        beep([220, 150], 0.22);
+        setTimeout(function () { finish("lost"); }, 1900);
+      }
+    }, 1200);
+  }
+
+  function revealAll(pickedOrig) {
+    var correct = S.deck[S.level].c;
+    document.querySelectorAll(".ans").forEach(function (b) {
+      var o = Number(b.dataset.orig);
+      b.disabled = true; b.classList.remove("picked");
+      if (o === correct) b.classList.add("right");
+      else if (pickedOrig !== null && o === pickedOrig) b.classList.add("wrong");
+    });
+  }
+
+  function markUsed(id) { S.used[id] = true; $(id).classList.add("used"); }
+
+  $("l-fifty").addEventListener("click", function () {
+    if (S.locked || S.used["l-fifty"]) return;
+    markUsed("l-fifty");
+    var correct = S.deck[S.level].c;
+    var wrongs = shuffle([0,1,2,3].filter(function (i) { return i !== correct; })).slice(0,2);
+    document.querySelectorAll(".ans").forEach(function (b) {
+      if (wrongs.indexOf(Number(b.dataset.orig)) > -1) b.classList.add("gone");
+    });
+    beep([520, 380], 0.08);
+  });
+
+  $("l-aud").addEventListener("click", function () {
+    if (S.locked || S.used["l-aud"]) return;
+    markUsed("l-aud");
+    var correct = S.deck[S.level].c, live = [];
+    document.querySelectorAll(".ans").forEach(function (b) {
+      if (!b.classList.contains("gone")) live.push(b);
+    });
+    var conf = S.level < 5 ? 0.72 : S.level < 10 ? 0.56 : 0.42;
+    var rest = 1 - conf, weights = [], sum = 0;
+    live.forEach(function (b) {
+      var w = Number(b.dataset.orig) === correct
+        ? conf : (rest / Math.max(1, live.length - 1)) * (0.6 + Math.random()*0.8);
+      weights.push(w); sum += w;
+    });
+    var pcts = weights.map(function (w) { return Math.round((w/sum)*100); });
+    pcts[0] += 100 - pcts.reduce(function (a,b) { return a+b; }, 0);
+    live.forEach(function (b,i) { b.querySelector(".bar").textContent = pcts[i] + "%"; });
+    $("answers").classList.add("voted");
+    $("aud-note").textContent = "כך הצביע הקהל באולם. לא תמיד הוא צודק — במיוחד בשאלות הקשות.";
+    $("aud-note").classList.add("on");
+    beep([300, 420, 560], 0.07);
+  });
+
+  $("l-skip").addEventListener("click", function () {
+    if (S.locked || S.used["l-skip"]) return;
+    var pool = S.spare[band(S.level)];
+    if (!pool || !pool.length) {
+      $("aud-note").textContent = "נגמרו השאלות החלופיות ברמה הזאת. צריך לענות על זו.";
+      $("aud-note").classList.add("on"); return;
+    }
+    markUsed("l-skip");
+    S.deck[S.level] = pool.shift();
+    beep([500, 640], 0.07);
+    renderQuestion();
+  });
+
+  $("walkaway").addEventListener("click", function () {
+    if (S.locked) return;
+    S.locked = true; stopTimer(); finish("walked");
+  });
+
+  $("ladder-btn").addEventListener("click", function () {
+    var open = $("ladder").classList.toggle("on");
+    this.textContent = open ? "סגירת סולם הפרסים" : "סולם הפרסים";
+  });
+
+  function finish(how) {
+    stopTimer();
+    var amount, verdict, detail, showCorrect = false;
+    if (how === "won") {
+      amount = 1000000;
+      verdict = S.name + ", ענית על כל חמש־עשרה השאלות.";
+      detail = "כל הכבוד. אין מה להוסיף.";
+    } else if (how === "walked") {
+      amount = bankedNow();
+      verdict = "פרשת אחרי " + S.level + " שאלות נכונות.";
+      detail = "החלטה של מקצוענים.";
+    } else if (how === "timeout") {
+      amount = safeAmount();
+      verdict = "נגמר הזמן בשאלה " + (S.level + 1) + ".";
+      detail = amount > 0 ? "נשארת עם התחנה המבטחת." : "הפעם בלי פרס.";
+      showCorrect = true;
+    } else {
+      amount = safeAmount();
+      verdict = "תשובה שגויה בשאלה " + (S.level + 1) + ".";
+      detail = amount > 0 ? "התחנה המבטחת שמרה עליך." : "הפעם בלי פרס.";
+      showCorrect = true;
+    }
+
+    S.lastAmount = amount;
+    S.lastAnswered = (how === "won") ? 15 : S.level;
+
+    $("verdict").textContent = verdict;
+    $("final").textContent = nis(amount);
+    $("detail").textContent = detail;
+    if (showCorrect) {
+      var it = S.deck[S.level];
+      $("correct-was").innerHTML = "התשובה הנכונה הייתה: <b>" + escapeHtml(it.a[it.c]) + "</b>";
+    } else { $("correct-was").textContent = ""; }
+    $("pb").classList.remove("on");
+
+    show("s-end");
+    beep(how === "won" ? [523,659,784,1046] : [392,294], 0.16);
+
+    boardSave(S.key, S.name, amount).then(function (res) {
+      if (!res) { paintBoard("board-end", "board-end-empty", null, S.key); return; }
+      paintBoard("board-end", "board-end-empty", res.rows, S.key);
+      if (res.isPB && amount > 0) {
+        $("pb").textContent = SHARED
+          ? "שיא אישי חדש. הוא כבר מופיע בטבלה אצל כל מי שנכנס לקישור."
+          : "שיא אישי חדש.";
+        $("pb").classList.add("on");
+      } else if (res.best > 0) {
+        $("pb").textContent = "השיא האישי שלך נשאר " + nis(res.best) + ".";
+        $("pb").classList.add("on");
+      }
+    });
+  }
+
+  $("share").addEventListener("click", function () {
+    var msg = "שיחקתי ב״מיליון על ירושלים״ וזכיתי ב־" + nis(S.lastAmount) +
+              " (" + S.lastAnswered + " שאלות נכונות). תנסו לעבור אותי: " + location.href;
+    if (navigator.share) {
+      navigator.share({ title: "מיליון על ירושלים", text: msg }).catch(function () {});
+    } else {
+      window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank", "noopener");
+    }
+  });
+
+  function refreshStart() {
+    boardLoad().then(function (rows) { paintBoard("board-start", "board-start-empty", rows, S.key); });
+  }
+  function startPolling() { stopPolling(); if (SHARED) poll = setInterval(refreshStart, POLL_MS); }
+  function stopPolling() { if (poll) { clearInterval(poll); poll = null; } }
+
+  $("refresh").addEventListener("click", refreshStart);
+  $("refresh2").addEventListener("click", function () {
+    boardLoad().then(function (rows) { paintBoard("board-end", "board-end-empty", rows, S.key); });
+  });
+
+  function show(id) {
+    ["s-start","s-game","s-end"].forEach(function (s) { $(s).classList.toggle("on", s === id); });
+    if (id === "s-start") startPolling(); else stopPolling();
+    window.scrollTo(0, 0);
+  }
+
+  $("go").addEventListener("click", function () {
+    var n = $("name").value.trim();
+    if (!n) {
+      $("name").focus(); $("name").classList.add("flash");
+      setTimeout(function () { $("name").classList.remove("flash"); }, 1700);
+      return;
+    }
+    S.name = n;
+    S.key = n.toLowerCase().replace(/\s+/g, " ");
+    S.level = 0; S.used = {};
+    S.timerOn = $("usetimer").checked;
+    ["l-fifty","l-aud","l-skip"].forEach(function (i) { $(i).classList.remove("used"); });
+    try { window.localStorage.setItem("jq-last-name", n); } catch (e) {}
+    buildDeck();
+    show("s-game");
+    renderQuestion();
+  });
+
+  $("name").addEventListener("keydown", function (e) { if (e.key === "Enter") $("go").click(); });
+  $("name").addEventListener("input", function () {
+    var n = this.value.trim().toLowerCase().replace(/\s+/g, " ");
+    if (!n) { $("mynote").classList.remove("on"); return; }
+    boardLoad().then(function (rows) {
+      var i;
+      for (i = 0; i < (rows || []).length; i++) {
+        if (rows[i].key === n) {
+          $("mynote").textContent = "השיא האישי שלך: " + nis(rows[i].best) + " (" + rows[i].games + " משחקים).";
+          $("mynote").classList.add("on"); return;
+        }
+      }
+      $("mynote").classList.remove("on");
+    });
+  });
+
+  $("again").addEventListener("click", function () { show("s-start"); refreshStart(); });
+
+  try {
+    var last = window.localStorage.getItem("jq-last-name");
+    if (last) { $("name").value = last; $("name").dispatchEvent(new Event("input")); }
+  } catch (e) {}
+
+  if (!SHARED) $("board-title").textContent = "טבלת השיאים (במכשיר הזה)";
+  refreshStart();
+  startPolling();
+})();
+</script>
+
+<!--
+==========================================================================
+טבלת שיאים משותפת לכל המשתתפים — הקמה חד־פעמית, כ־5 דקות
+
+המשתתפים לא צריכים כלום. רק מי שמארח את המשחק מבצע את השלבים האלה פעם אחת.
+
+1. נכנסים ל־script.google.com ויוצרים פרויקט חדש (New project).
+2. מוחקים את כל הקוד שמופיע, ומדביקים במקומו:
+
+const KEY = 'jerusalem-quiz';
+
+function doGet(e) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const props = PropertiesService.getScriptProperties();
+    let rows = JSON.parse(props.getProperty(KEY) || '[]');
+
+    if (e.parameter.action === 'save') {
+      const name  = String(e.parameter.name || '').trim().slice(0, 18);
+      const score = parseInt(e.parameter.score, 10) || 0;
+      const key   = name.toLowerCase().replace(/\s+/g, ' ');
+      if (name) {
+        let mine = rows.filter(function (r) { return r.key === key; })[0];
+        if (!mine) {
+          rows.push({ key: key, name: name, best: score, games: 1, t: Date.now() });
+        } else {
+          mine.games++;
+          mine.name = name;
+          mine.t = Date.now();
+          if (score > mine.best) mine.best = score;
+        }
+        rows.sort(function (a, b) { return b.best - a.best || a.t - b.t; });
+        rows = rows.slice(0, 200);
+        props.setProperty(KEY, JSON.stringify(rows));
+      }
+    }
+
+    return ContentService.createTextOutput(JSON.stringify(rows))
+                         .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+3. Deploy > New deployment > סוג: Web app
+   Execute as: Me
+   Who has access: Anyone      <-- חשוב, אחרת המשתתפים לא יוכלו לגשת
+4. מעתיקים את כתובת ה־Web app שמתקבלת.
+5. בקובץ הזה, בשורה   var LEADERBOARD_URL = "";
+   מדביקים את הכתובת בין הגרשיים ושומרים.
+
+מרגע זה כל מי שפותח את הקישור רואה את אותה טבלה, והיא מתעדכנת לבד.
+כדי לאפס את הטבלה: בעורך הסקריפט, Project Settings > Script Properties > מחיקת המאפיין jerusalem-quiz.
+==========================================================================
+-->
+</body>
+</html>
