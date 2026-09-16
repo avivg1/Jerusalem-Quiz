@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מיליון על ירושלים · שחקן</title>
+<meta name="theme-color" content="#0B1030">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--night:#0B1030;--stone:#EFE2C4;--dim:#B9AC92;--gold:#E3A72C;--gold2:#F2C766}
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:'Heebo',system-ui,Arial,sans-serif;color:var(--stone);min-height:100vh;padding:18px 14px 32px;
+    background:radial-gradient(120% 70% at 50% -10%,#2A3378 0,rgba(42,51,120,0) 60%),linear-gradient(180deg,#0B1030,#070B22);
+    background-attachment:fixed;
+  }
+  h1,h2,.q{font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:700;margin:0}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible,input:focus-visible{outline:3px solid var(--gold2);outline-offset:3px}
+  .wrap{max-width:560px;margin:0 auto}
+  .screen{display:none}.screen.on{display:block}
+
+  .top{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--dim);margin-bottom:16px}
+  .top b{color:var(--gold2)}
+
+  .card{background:linear-gradient(180deg,rgba(34,43,107,.8),rgba(21,28,74,.8));
+        border:1px solid rgba(227,167,44,.3);border-radius:16px;padding:18px;margin-top:16px}
+  .q{font-size:clamp(19px,5.4vw,24px);line-height:1.4;color:#fff;text-align:center}
+
+  input{width:100%;background:rgba(11,16,48,.8);border:1px solid rgba(239,226,196,.28);border-radius:12px;
+        color:var(--stone);padding:15px 16px;font-size:17px}
+  .btn{width:100%;border:none;border-radius:12px;padding:16px;font-size:17px;font-weight:700;color:#1A1204;
+       background:linear-gradient(180deg,var(--gold2),var(--gold));box-shadow:0 6px 0 #9A6F14;margin-top:14px}
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #9A6F14}
+  .btn[disabled]{opacity:.4;pointer-events:none}
+
+  .opts{display:grid;gap:12px;margin-top:16px}
+  .opt{display:flex;align-items:center;gap:12px;width:100%;text-align:right;
+       background:linear-gradient(180deg,rgba(34,43,107,.9),rgba(21,28,74,.9));
+       border:2px solid rgba(239,226,196,.22);border-radius:14px;padding:18px 15px;
+       color:var(--stone);font-size:18px;line-height:1.35;transition:all .2s ease}
+  .opt .tag{flex:none;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:17px;
+            background:rgba(227,167,44,.16);color:var(--gold2);border:1px solid rgba(227,167,44,.45)}
+  .opt .t{flex:1}
+  .opt:active{transform:scale(.98)}
+  .opt.sent{border-color:var(--gold2);background:linear-gradient(180deg,#3A2E6E,#2B2158)}
+  .opt.sent .tag{background:var(--gold);color:#1A1204}
+  .opt.right{border-color:#78C88F;background:linear-gradient(180deg,#2E6B45,#1F4A30);color:#EAFBEF}
+  .opt.right .tag{background:#78C88F;color:#0C2416;border-color:#78C88F}
+  .opt.bad{border-color:#E0748A;background:linear-gradient(180deg,#7A2331,#521622);color:#FFE6EA}
+  .opt.bad .tag{background:#E0748A;color:#3A0B14;border-color:#E0748A}
+  .opts.locked .opt{pointer-events:none}
+  .opts.locked .opt:not(.sent):not(.right):not(.bad){opacity:.4}
+
+  .track{height:8px;background:rgba(239,226,196,.12);border-radius:99px;overflow:hidden;margin-top:14px}
+  .track i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width 1s linear}
+  .track.warn i{background:linear-gradient(90deg,#C0392B,#E0748A)}
+
+  .mid{text-align:center;padding:40px 16px}
+  .mid .big{font-family:'Frank Ruhl Libre',Georgia,serif;font-size:clamp(30px,10vw,46px);color:var(--gold2);line-height:1.15}
+  .mid p{font-size:16px;color:var(--dim);margin:12px 0 0;line-height:1.6}
+  .dots::after{content:"";animation:dots 1.4s steps(4,end) infinite}
+  @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+  .gain{display:inline-block;margin-top:10px;background:rgba(110,140,86,.2);border:1px solid rgba(110,140,86,.55);
+        border-radius:999px;padding:8px 18px;color:#D6EBC6;font-size:17px}
+  .err{color:#FFB4A0;font-size:14px;text-align:center;margin-top:14px;min-height:20px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <span id="who"></span>
+    <span id="score"></span>
+  </div>
+
+  <section id="s-join" class="screen on">
+    <div class="mid" style="padding:20px 0 0">
+      <div class="big">מיליון על ירושלים</div>
+      <p>הקלידו שם והמתינו למנחה</p>
+    </div>
+    <div class="card">
+      <input id="name" maxlength="16" placeholder="השם שלך" autocomplete="off">
+      <button id="join" class="btn">הצטרפות</button>
+    </div>
+  </section>
+
+  <section id="s-wait" class="screen">
+    <div class="mid">
+      <div class="big" id="waittitle">מחכים למנחה</div>
+      <p class="dots" id="waittext">המשחק יתחיל בקרוב</p>
+    </div>
+  </section>
+
+  <section id="s-q" class="screen">
+    <div class="card"><p class="q" id="qtext"></p></div>
+    <div class="track" id="track"><i id="bar"></i></div>
+    <div class="opts" id="opts"></div>
+  </section>
+
+  <section id="s-res" class="screen">
+    <div class="mid">
+      <div class="big" id="verdict"></div>
+      <div id="gainwrap"><span class="gain" id="gain"></span></div>
+      <p id="rank"></p>
+    </div>
+  </section>
+
+  <p class="err" id="err"></p>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===== הגדרות ===== */
+var LIVE_URL = "https://quiz-live.avivg1.workers.dev";   // אותה כתובת Worker של מסך המנחה
+
+var LETTERS=["א","ב","ג","ד"];
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+
+var me="",seen=-1,sent=null,skew=0,tick=null,phase="",myScore=0;
+
+function api(path,body){
+  var u=LIVE_URL+(LIVE_URL.indexOf("?")>-1?"&":"?")+path;
+  var o={cache:"no-store"};
+  if(body){o.method="POST";o.body=JSON.stringify(body)}
+  return fetch(u,o).then(function(r){return r.json()});
+}
+function show(id){["s-join","s-wait","s-q","s-res"].forEach(function(s){$(s).classList.toggle("on",s===id)})}
+function fail(m){$("err").textContent=m||""}
+
+$("join").addEventListener("click",function(){
+  var n=$("name").value.trim();
+  if(!n){$("name").focus();return}
+  me=n;
+  api("a=join",{name:n}).then(function(){
+    $("who").textContent=me;
+    show("s-wait");
+    try{localStorage.setItem("jq-live-name",me)}catch(e){}
+  }).catch(function(){fail("לא הצלחנו להתחבר. בדקו שיש אינטרנט ונסו שוב")});
+});
+$("name").addEventListener("keydown",function(e){if(e.key==="Enter")$("join").click()});
+try{var l=localStorage.getItem("jq-live-name");if(l)$("name").value=l}catch(e){}
+
+function paintQ(st){
+  seen=st.idx;sent=null;
+  $("qtext").textContent=st.q;
+  var box=$("opts");box.className="opts";box.innerHTML="";
+  (st.a||[]).forEach(function(t,i){
+    var b=document.createElement("button");b.className="opt";b.dataset.i=i;
+    b.innerHTML='<span class="tag">'+LETTERS[i]+'</span><span class="t">'+esc(t)+'</span>';
+    b.addEventListener("click",function(){answer(i,b,st)});
+    box.appendChild(b);
+  });
+  clearInterval(tick);
+  tick=setInterval(function(){
+    var left=Math.max(0,(st.endsAt-(Date.now()+skew))/1000);
+    $("bar").style.width=(left/st.seconds*100)+"%";
+    $("track").classList.toggle("warn",left<=5);
+    if(left<=0)clearInterval(tick);
+  },250);
+  show("s-q");
+}
+function answer(i,b,st){
+  if(sent!==null)return;
+  sent=i;
+  $("opts").classList.add("locked");
+  b.classList.add("sent");
+  api("a=answer",{name:me,idx:st.idx,choice:i}).catch(function(){fail("התשובה לא נשלחה")});
+}
+function paintReveal(st){
+  var box=$("opts");box.classList.add("locked");
+  [].forEach.call(box.children,function(b){
+    var i=Number(b.dataset.i);
+    if(i===st.c)b.classList.add("right");
+    else if(sent===i)b.classList.add("bad");
+  });
+  var mine=(st.players||[]).filter(function(p){return p.name===me})[0];
+  var gain=mine?mine.gain:0;
+  myScore=mine?mine.score:myScore;
+  $("score").textContent=myScore+" נק׳";
+  setTimeout(function(){
+    var ok=sent===st.c;
+    $("verdict").textContent=sent===null?"לא ענית":(ok?"נכון":"לא נכון");
+    $("gainwrap").style.display=gain?"":"none";
+    $("gain").textContent="+"+gain+" נקודות";
+    var rows=(st.players||[]).slice().sort(function(a,b){return b.score-a.score});
+    var pos=rows.map(function(r){return r.name}).indexOf(me)+1;
+    $("rank").textContent=pos?"מקום "+pos+" מתוך "+rows.length:"";
+    show("s-res");
+  },1600);
+}
+function paintEnd(st){
+  clearInterval(tick);
+  var rows=(st.players||[]).slice().sort(function(a,b){return b.score-a.score});
+  var pos=rows.map(function(r){return r.name}).indexOf(me)+1;
+  $("waittitle").textContent=pos===1?"ניצחת":"מקום "+pos;
+  $("waittext").className="";
+  $("waittext").textContent=myScore+" נקודות מתוך "+rows.length+" שחקנים";
+  show("s-wait");
+}
+
+function loop(){
+  if(!me)return;
+  api("a=state").then(function(st){
+    fail("");skew=st.now-Date.now();
+    if(st.phase!==phase||st.idx!==seen){
+      if(st.phase==="ask"&&st.idx!==seen)paintQ(st);
+      else if(st.phase==="reveal"&&phase!=="reveal")paintReveal(st);
+      else if(st.phase==="end")paintEnd(st);
+      else if(st.phase==="lobby"&&phase!=="lobby"){seen=-1;show("s-wait");
+        $("waittitle").textContent="מחכים למנחה";$("waittext").className="dots";$("waittext").textContent="המשחק יתחיל בקרוב"}
+      phase=st.phase;
+    }
+  }).catch(function(){fail("אין קשר לשרת")});
+}
+
+if(!LIVE_URL)fail("חסרה כתובת ה-Worker בשורת LIVE_URL");
+setInterval(loop,1500);
+})();
+</script>
+</body>
+</html>
