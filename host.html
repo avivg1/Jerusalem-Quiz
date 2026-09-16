@@ -58,6 +58,15 @@
   .opt.right .tag{background:#78C88F;color:#0C2416;border-color:#78C88F}
   .opt.dim{opacity:.4}
 
+  .timerbig{text-align:center;margin:2px 0 4px}
+  .timerbig .tnum{font-family:'Frank Ruhl Libre',Georgia,serif;font-size:clamp(50px,8.5vw,104px);line-height:1;
+                  color:var(--gold2);font-variant-numeric:tabular-nums;transition:color .3s}
+  .timerbig .tlbl{font-size:clamp(13px,1.4vw,18px);color:var(--dim);letter-spacing:3px}
+  .timerbig.warn .tnum{color:#FFB4A0}
+  .setrow{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+  .setrow label{display:flex;flex-direction:column;gap:7px;font-size:clamp(13px,1.4vw,17px);color:var(--dim)}
+  .setrow select{background:rgba(11,16,48,.9);color:var(--stone);border:1px solid rgba(239,226,196,.3);
+                 border-radius:10px;padding:11px 16px;font-size:clamp(16px,1.8vw,20px);font-family:inherit}
   .track{height:12px;background:rgba(239,226,196,.12);border-radius:99px;overflow:hidden}
   .track i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));width:100%;transition:width 1s linear}
   .track.warn i{background:linear-gradient(90deg,#C0392B,#E0748A)}
@@ -101,18 +110,26 @@
         <div class="hint">סרקו את הקוד או הקלידו את הכתובת בדפדפן</div>
       </div>
     </div>
+    <div class="setrow">
+      <label>מספר שאלות
+        <select id="setRound"><option>10</option><option selected>15</option><option>20</option><option>25</option></select>
+      </label>
+      <label>שניות לשאלה
+        <select id="setSecs"><option>15</option><option>20</option><option selected>25</option><option>30</option><option>45</option></select>
+      </label>
+    </div>
     <div class="chips" id="chips"></div>
     <div class="count" id="lcount">מחכים לשחקנים…</div>
   </section>
 
   <section id="s-q" class="screen">
     <p class="qtext" id="qtext"></p>
+    <div class="timerbig" id="timerbig"><div class="tnum" id="tnum">25</div><div class="tlbl">שניות</div></div>
     <div class="opts" id="opts"></div>
     <div class="track" id="track"><i id="trackbar"></i></div>
     <div class="status">
       <span>שאלה <b id="qi">1</b> מתוך <span id="qn">15</span></span>
       <span>ענו: <b id="answered">0</b> / <span id="ptotal">0</span></span>
-      <span id="clock">—</span>
     </div>
   </section>
 
@@ -303,18 +320,29 @@ function setControls(){
     c.appendChild(btn("איפוס",reset,true));
   } else if(phase==="ask"){
     c.appendChild(btn("חשיפת התשובה",reveal));
+    c.appendChild(btn("סיום המשחק",endNow,true));
   } else if(phase==="reveal"){
     c.appendChild(btn(idx+1>=deck.length?"סיום והצגת המנצח":"השאלה הבאה",next));
+    c.appendChild(btn("סיום המשחק",endNow,true));
   } else if(phase==="end"){
     c.appendChild(btn("משחק חדש",reset));
   }
 }
 
 function reset(){
-  buildDeck();idx=-1;phase="lobby";
+  buildDeck();idx=-1;phase="lobby";sigB="";sigC="";
   api("a=host",{cmd:"reset"}).then(function(){show("s-lobby");setControls()}).catch(function(){fail("אין קשר לשרת")});
 }
-function start(){ idx=-1; next(); }
+function start(){
+  ROUND=Number($("setRound").value)||15;
+  SECONDS=Number($("setSecs").value)||25;
+  buildDeck();
+  idx=-1; next();
+}
+function endNow(){
+  phase="end";clearInterval(tick);
+  api("a=host",{cmd:"end"}).then(function(st){paintBoard(st,true);show("s-board");setControls()});
+}
 
 function next(){
   idx++;
@@ -326,13 +354,14 @@ function next(){
   var q=deck[idx],order=shuffle([0,1,2,3]);
   var payload={cmd:"ask",idx:idx,total:deck.length,seconds:SECONDS,
     q:q.q,a:order.map(function(o){return q.a[o]}),c:order.indexOf(q.c)};
-  phase="ask";lastCounts=null;
+  phase="ask";lastCounts=null;sigB="";
   api("a=host",payload).then(function(st){
     paintQuestion(payload,st);show("s-q");setControls();
   }).catch(function(){fail("שליחת השאלה נכשלה")});
 }
 function reveal(){
-  phase="reveal";
+  if(phase!=="ask")return;
+  phase="reveal";clearInterval(tick);
   api("a=host",{cmd:"reveal"}).then(function(st){
     paintReveal(st);setControls();
     setTimeout(function(){ if(phase==="reveal"){paintBoard(st,false);show("s-board")} },3500);
@@ -356,13 +385,17 @@ function paintQuestion(p,st){
 }
 function startClock(endsAt){
   clearInterval(tick);
-  tick=setInterval(function(){
+  var upd=function(){
     var left=Math.max(0,Math.round((endsAt-(Date.now()+skew))/1000));
-    $("clock").textContent=left+"״";
+    $("tnum").textContent=left;
     $("trackbar").style.width=(left/SECONDS*100)+"%";
-    $("track").classList.toggle("warn",left<=5);
+    var w=left<=5;
+    $("track").classList.toggle("warn",w);
+    $("timerbig").classList.toggle("warn",w);
     if(left<=0){clearInterval(tick); if(phase==="ask") reveal();}
-  },250);
+  };
+  upd();
+  tick=setInterval(upd,250);
 }
 function paintReveal(st){
   clearInterval(tick);
@@ -375,8 +408,11 @@ function paintReveal(st){
     if(i===cur.c)d.classList.add("right");else d.classList.add("dim");
   });
 }
+var sigB="",sigC="",sigM="";
 function paintBoard(st,final){
   var rows=(st.players||[]).slice().sort(function(a,b){return b.score-a.score});
+  var sig=final+"|"+rows.map(function(r){return r.name+":"+r.score+":"+r.gain}).join("|");
+  if(sig===sigB)return; sigB=sig;
   $("btitle").textContent=final?"המנצחים":"הניקוד עד כה";
   $("board").innerHTML=rows.slice(0,12).map(function(r,i){
     return '<li><span class="r'+(i<3?" m"+(i+1):"")+'">'+(i+1)+'</span>'+
@@ -388,6 +424,8 @@ function paintBoard(st,final){
 
 function paintLobby(st){
   var ps=st.players||[];
+  var sig=ps.map(function(p){return p.name}).join("|");
+  if(sig===sigC)return; sigC=sig;
   $("chips").innerHTML=ps.map(function(p){return '<span class="chip">'+esc(p.name)+'</span>'}).join("");
   $("lcount").textContent=ps.length?ps.length+" שחקנים מחוברים":"מחכים לשחקנים…";
 }
@@ -396,11 +434,13 @@ function loop(){
   api("a=state").then(function(st){
     fail("");
     skew=st.now-Date.now();
-    $("meta").textContent=(st.players||[]).length+" שחקנים";
+    var mt=(st.players||[]).length+" שחקנים";
+    if(mt!==sigM){sigM=mt;$("meta").textContent=mt}
     if(phase==="lobby")paintLobby(st);
     else if(phase==="ask"){
-      $("answered").textContent=st.answered||0;
-      $("ptotal").textContent=(st.players||[]).length;
+      var an=String(st.answered||0),pt=String((st.players||[]).length);
+      if($("answered").textContent!==an)$("answered").textContent=an;
+      if($("ptotal").textContent!==pt)$("ptotal").textContent=pt;
       if((st.players||[]).length&&st.answered>=st.players.length)reveal();
     }
     else if(phase==="reveal"&&$("s-board").classList.contains("on"))paintBoard(st,false);
