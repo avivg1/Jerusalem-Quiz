@@ -66,6 +66,8 @@
   @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
   .gain{display:inline-block;margin-top:10px;background:rgba(110,140,86,.2);border:1px solid rgba(110,140,86,.55);
         border-radius:999px;padding:8px 18px;color:#D6EBC6;font-size:17px}
+  .exit{background:transparent;border:1px solid rgba(239,226,196,.3);color:var(--dim);
+        border-radius:999px;padding:6px 15px;font-size:13px;margin-inline-start:10px}
   .err{color:#FFB4A0;font-size:14px;text-align:center;margin-top:14px;min-height:20px}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -75,7 +77,7 @@
 
   <div class="top">
     <span id="who"></span>
-    <span id="score"></span>
+    <span><span id="score"></span><button id="exit" class="exit" style="display:none">יציאה</button></span>
   </div>
 
   <section id="s-join" class="screen on">
@@ -121,10 +123,11 @@
 var LIVE_URL = "https://quiz-live.avivg1.workers.dev";   // אותה כתובת Worker של מסך המנחה
 
 var LETTERS=["א","ב","ג","ד"];
+var lastState={};
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 
-var me="",seen=-1,sent=null,skew=0,tick=null,phase="",myScore=0;
+var me="",seen=-1,sent=null,skew=0,tick=null,phase="",myScore=0,revealTimer=null,shownReveal=-1;
 
 function api(path,body){
   var u=LIVE_URL+(LIVE_URL.indexOf("?")>-1?"&":"?")+path;
@@ -141,14 +144,25 @@ $("join").addEventListener("click",function(){
   me=n;
   api("a=join",{name:n}).then(function(){
     $("who").textContent=me;
+    $("exit").style.display="";
     show("s-wait");
     try{localStorage.setItem("jq-live-name",me)}catch(e){}
   }).catch(function(){fail("לא הצלחנו להתחבר. בדקו שיש אינטרנט ונסו שוב")});
 });
 $("name").addEventListener("keydown",function(e){if(e.key==="Enter")$("join").click()});
+
+$("exit").addEventListener("click",function(){
+  if(!confirm("לצאת מהמשחק? הניקוד שלך יימחק."))return;
+  var n=me;me="";phase="";seen=-1;sent=null;myScore=0;shownReveal=-1;
+  clearInterval(tick);clearTimeout(revealTimer);
+  $("exit").style.display="none";$("who").textContent="";$("score").textContent="";
+  show("s-join");
+  api("a=leave",{name:n}).catch(function(){});
+});
 try{var l=localStorage.getItem("jq-live-name");if(l)$("name").value=l}catch(e){}
 
 function paintQ(st){
+  clearTimeout(revealTimer);revealTimer=null;
   seen=st.idx;sent=null;
   $("qtext").textContent=st.q;
   var box=$("opts");box.className="opts";box.innerHTML="";
@@ -175,29 +189,36 @@ function answer(i,b,st){
   api("a=answer",{name:me,idx:st.idx,choice:i}).catch(function(){fail("התשובה לא נשלחה")});
 }
 function paintReveal(st){
+  if(shownReveal===st.idx)return;
+  shownReveal=st.idx;
+  clearInterval(tick);
+  var myIdx=st.idx, mySent=sent, correct=st.c, answers=st.a||[];
   var box=$("opts");box.classList.add("locked");
   [].forEach.call(box.children,function(b){
     var i=Number(b.dataset.i);
-    if(i===st.c)b.classList.add("right");
-    else if(sent===i)b.classList.add("bad");
+    if(i===correct)b.classList.add("right");
+    else if(mySent===i)b.classList.add("bad");
   });
-  var mine=(st.players||[]).filter(function(p){return p.name===me})[0];
-  var gain=mine?mine.gain:0;
-  myScore=mine?mine.score:myScore;
-  $("score").textContent=myScore+" נק׳";
-  setTimeout(function(){
-    var ok=sent===st.c;
-    $("verdict").textContent=sent===null?"לא ענית":(ok?"נכון":"לא נכון");
+  clearTimeout(revealTimer);
+  revealTimer=setTimeout(function(){
+    if(seen!==myIdx)return;                 // כבר הגיעה שאלה חדשה
+    var mine=(lastState.players||[]).filter(function(p){return p.name===me})[0];
+    var gain=mine?mine.gain:0;
+    myScore=mine?mine.score:myScore;
+    $("score").textContent=myScore+" נק׳";
+    var ok=mySent===correct;
+    $("verdict").textContent=mySent===null?"לא ענית":(ok?"נכון":"לא נכון");
     $("gainwrap").style.display=gain?"":"none";
     $("gain").textContent="+"+gain+" נקודות";
-    var rows=(st.players||[]).slice().sort(function(a,b){return b.score-a.score});
+    var rows=(lastState.players||[]).slice().sort(function(a,b){return b.score-a.score});
     var pos=rows.map(function(r){return r.name}).indexOf(me)+1;
-    $("rank").textContent=pos?"מקום "+pos+" מתוך "+rows.length:"";
+    $("rank").innerHTML=(ok?"":"התשובה הנכונה: <b style=\'color:var(--gold2)\'>"+esc(answers[correct]||"")+"</b><br>")+
+                        (pos?"מקום "+pos+" מתוך "+rows.length:"");
     show("s-res");
-  },1600);
+  },1800);
 }
 function paintEnd(st){
-  clearInterval(tick);
+  clearInterval(tick);clearTimeout(revealTimer);
   var rows=(st.players||[]).slice().sort(function(a,b){return b.score-a.score});
   var pos=rows.map(function(r){return r.name}).indexOf(me)+1;
   $("waittitle").textContent=pos===1?"ניצחת":"מקום "+pos;
@@ -208,13 +229,18 @@ function paintEnd(st){
 
 function loop(){
   if(!me)return;
-  api("a=state").then(function(st){
-    fail("");skew=st.now-Date.now();
+  api("a=state&me="+encodeURIComponent(me)).then(function(st){
+    fail("");skew=st.now-Date.now();lastState=st;
+    if(st.phase==="reveal"&&shownReveal===st.idx&&$("s-res").classList.contains("on")){
+      var m=(st.players||[]).filter(function(p){return p.name===me})[0];
+      if(m){myScore=m.score;$("score").textContent=myScore+" נק׳";
+            if(m.gain){$("gainwrap").style.display="";$("gain").textContent="+"+m.gain+" נקודות"}}
+    }
     if(st.phase!==phase||st.idx!==seen){
       if(st.phase==="ask"&&st.idx!==seen)paintQ(st);
       else if(st.phase==="reveal"&&phase!=="reveal")paintReveal(st);
       else if(st.phase==="end")paintEnd(st);
-      else if(st.phase==="lobby"&&phase!=="lobby"){seen=-1;show("s-wait");
+      else if(st.phase==="lobby"&&phase!=="lobby"){seen=-1;shownReveal=-1;clearTimeout(revealTimer);show("s-wait");
         $("waittitle").textContent="מחכים למנחה";$("waittext").className="dots";$("waittext").textContent="המשחק יתחיל בקרוב"}
       phase=st.phase;
     }
