@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מסך מנחה · מיליון על ירושלים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--night:#0B1030;--stone:#EFE2C4;--dim:#B9AC92;--gold:#E3A72C;--gold2:#F2C766;--olive:#6E8C56;}
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:'Heebo',system-ui,Arial,sans-serif;color:var(--stone);
+    background:radial-gradient(120% 70% at 50% -10%,#2A3378 0,rgba(42,51,120,0) 60%),linear-gradient(180deg,#0B1030,#070B22);
+    min-height:100vh;padding:24px;display:flex;flex-direction:column;
+  }
+  h1,h2,.qtext,.big{font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:700;margin:0}
+  button{font-family:inherit;cursor:pointer}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex:none}
+  .brand{font-size:clamp(18px,2.2vw,26px);color:var(--gold2)}
+  .meta{font-size:clamp(14px,1.6vw,20px);color:var(--dim)}
+  .btn{border:none;border-radius:14px;padding:16px 30px;font-size:clamp(16px,1.8vw,22px);font-weight:700;
+       color:#1A1204;background:linear-gradient(180deg,var(--gold2),var(--gold));box-shadow:0 6px 0 #9A6F14}
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #9A6F14}
+  .btn.ghost{background:transparent;color:var(--dim);border:1px solid rgba(239,226,196,.3);box-shadow:none;font-weight:400;padding:12px 20px;font-size:16px}
+  .btn[disabled]{opacity:.35;pointer-events:none}
+  .stage{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px}
+  .screen{display:none}.screen.on{display:flex;flex-direction:column;gap:22px;flex:1;justify-content:center}
+
+  /* lobby */
+  .lobby{text-align:center}
+  .lobby h1{font-size:clamp(34px,6vw,72px);line-height:1.05}
+  .joinbox{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;margin-top:22px}
+  .qr{background:#fff;padding:12px;border-radius:14px;line-height:0}
+  .url{font-size:clamp(18px,2.6vw,34px);color:var(--gold2);word-break:break-all;max-width:640px;direction:ltr}
+  .hint{font-size:clamp(14px,1.5vw,18px);color:var(--dim);margin-top:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:24px;min-height:44px}
+  .chip{background:rgba(227,167,44,.16);border:1px solid rgba(227,167,44,.5);border-radius:999px;
+        padding:8px 16px;font-size:clamp(14px,1.6vw,20px);animation:pop .3s ease both}
+  @keyframes pop{from{opacity:0;transform:scale(.8)}}
+  .count{font-size:clamp(16px,2vw,24px);color:var(--dim);margin-top:14px}
+
+  /* question */
+  .qtext{font-size:clamp(26px,4.4vw,56px);line-height:1.3;text-align:center;color:#fff}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+  .opt{display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,rgba(34,43,107,.9),rgba(21,28,74,.9));
+       border:2px solid rgba(239,226,196,.22);border-radius:16px;padding:18px 20px;font-size:clamp(18px,2.4vw,30px);
+       transition:all .3s ease;position:relative;overflow:hidden}
+  .opt .tag{flex:none;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;font-weight:700;
+            background:rgba(227,167,44,.16);color:var(--gold2);border:1px solid rgba(227,167,44,.45);font-size:22px}
+  .opt .t{flex:1}
+  .opt .n{flex:none;font-size:clamp(16px,2vw,26px);color:var(--gold2);font-variant-numeric:tabular-nums;opacity:0;transition:opacity .3s}
+  .opts.revealed .opt .n{opacity:1}
+  .opt .fill{position:absolute;inset-inline-start:0;top:0;bottom:0;background:rgba(227,167,44,.14);width:0;transition:width .5s ease;z-index:-1}
+  .opt.right{border-color:#78C88F;background:linear-gradient(180deg,#2E6B45,#1F4A30);color:#EAFBEF}
+  .opt.right .tag{background:#78C88F;color:#0C2416;border-color:#78C88F}
+  .opt.dim{opacity:.4}
+
+  .track{height:12px;background:rgba(239,226,196,.12);border-radius:99px;overflow:hidden}
+  .track i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));width:100%;transition:width 1s linear}
+  .track.warn i{background:linear-gradient(90deg,#C0392B,#E0748A)}
+  .status{display:flex;justify-content:space-between;align-items:center;font-size:clamp(16px,2vw,24px);color:var(--dim)}
+  .status b{color:var(--gold2);font-size:1.2em}
+
+  /* board */
+  .board{list-style:none;margin:0;padding:0;max-width:760px;margin-inline:auto;width:100%}
+  .board li{display:flex;align-items:center;gap:14px;padding:12px 10px;border-bottom:1px solid rgba(239,226,196,.12);
+            font-size:clamp(17px,2.2vw,28px);animation:rowin .35s ease both}
+  @keyframes rowin{from{opacity:0;transform:translateY(8px)}}
+  .board .r{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:.7em;font-weight:700;
+            background:rgba(239,226,196,.1);border:1px solid rgba(239,226,196,.18);color:var(--dim)}
+  .board .r.m1{background:linear-gradient(160deg,#FFD976,#D69A17);color:#3A2705;border-color:#FFE8AC}
+  .board .r.m2{background:linear-gradient(160deg,#E4E8EE,#A7B0BD);color:#2A2F38}
+  .board .r.m3{background:linear-gradient(160deg,#E0A178,#B06A3C);color:#33190A}
+  .board .nm{flex:1}
+  .board .pt{flex:none;color:var(--gold2);font-weight:700;font-variant-numeric:tabular-nums}
+  .board .gain{flex:none;font-size:.7em;color:#9FD6AE;min-width:70px;text-align:left}
+
+  .controls{display:flex;gap:12px;justify-content:center;flex:none;padding-top:8px;flex-wrap:wrap}
+  .err{color:#FFB4A0;font-size:16px;text-align:center}
+  @media (max-width:760px){.opts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="brand">מיליון על ירושלים · מסך מנחה</div>
+  <div class="meta" id="meta"></div>
+</div>
+
+<div class="stage">
+
+  <section id="s-lobby" class="screen on lobby">
+    <h1>הצטרפו למשחק</h1>
+    <div class="joinbox">
+      <div class="qr" id="qr"></div>
+      <div>
+        <div class="url" id="joinurl">—</div>
+        <div class="hint">סרקו את הקוד או הקלידו את הכתובת בדפדפן</div>
+      </div>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="count" id="lcount">מחכים לשחקנים…</div>
+  </section>
+
+  <section id="s-q" class="screen">
+    <p class="qtext" id="qtext"></p>
+    <div class="opts" id="opts"></div>
+    <div class="track" id="track"><i id="trackbar"></i></div>
+    <div class="status">
+      <span>שאלה <b id="qi">1</b> מתוך <span id="qn">15</span></span>
+      <span>ענו: <b id="answered">0</b> / <span id="ptotal">0</span></span>
+      <span id="clock">—</span>
+    </div>
+  </section>
+
+  <section id="s-board" class="screen">
+    <h2 style="text-align:center;font-size:clamp(24px,3.4vw,42px);color:var(--gold2)" id="btitle">הניקוד עד כה</h2>
+    <ul class="board" id="board"></ul>
+  </section>
+
+</div>
+
+<div class="controls" id="controls"></div>
+<p class="err" id="err"></p>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ===== הגדרות ===== */
+var LIVE_URL   = "https://quiz-live.avivg1.workers.dev";   // כתובת ה-Worker של מצב מנחה
+var PLAYER_URL = "";   // כתובת עמוד השחקן, למשל https://jerusalem-quiz.pages.dev/play.html
+var ROUND      = 15;   // כמה שאלות בסיבוב
+var SECONDS    = 25;   // שניות לשאלה
+
+  var BANK = {
+    easy: [
+      /* ★ */ { q: "מי בנה את בית המקדש הראשון?", a: ["דוד המלך", "שלמה המלך", "הורדוס", "עזרא הסופר"], c: 1 },
+      /* ★ */ { q: "מי טבע את המשפט ההיסטורי ״הר הבית בידינו״?", a: ["יצחק רבין", "מוטה גור", "עוזי נרקיס", "משה דיין"], c: 1 },
+      /* ★ */ { q: "לפי חוק עירוני, באיזה חומר חייבים לצפות כל בניין חדש בירושלים?", a: ["בטון חשוף", "אבן ירושלמית", "לבנים אדומות", "שיש לבן"], c: 1 },
+      /* ★ */ { q: "מה שמו של ראש העיר הנוכחי של ירושלים?", a: ["ניר ברקת", "משה ליאון", "אורי לופוליאנסקי", "עופר ברקוביץ׳"], c: 1 },
+      /* ★ */ { q: "מה שמו של נשיא המדינה כיום?", a: ["ראובן ריבלין", "יצחק הרצוג", "שמעון פרס", "אפרים קציר"], c: 1 },
+      { q: "לכמה רבעים מחולקת העיר העתיקה בירושלים?", a: ["שניים", "שלושה", "ארבעה", "שישה"], c: 2 },
+      { q: "מי בנה את חומות העיר העתיקה העומדות על תילן עד היום?", a: ["הורדוס", "סולימאן המפואר", "דוד המלך", "הצלבנים"], c: 1 },
+      { q: "איך נקרא השוק הגדול במרכז ירושלים?", a: ["שוק הכרמל", "מחנה יהודה", "שוק תלפיות", "שוק הפשפשים"], c: 1 },
+      { q: "איזה הר משקיף על העיר העתיקה ממזרח?", a: ["הר הרצל", "הר הצופים", "הר הזיתים", "הר גילֹה"], c: 2 },
+      { q: "מה שמו של הגשר בכניסה לעיר שתכנן סנטיאגו קלטרווה?", a: ["גשר המיתרים", "גשר הקשת", "גשר הצופים", "גשר יפו"], c: 0 },
+      { q: "מי המלך שהפך את ירושלים לבירת ממלכת ישראל?", a: ["שאול", "דוד", "שלמה", "חזקיהו"], c: 1 },
+      { q: "באיזה חג של חודש תשרי עלו לרגל לירושלים?", a: ["פסח", "שבועות", "סוכות", "חנוכה"], c: 2 },
+      { q: "איזו מצודה ניצבת בעיר העתיקה סמוך לשער יפו?", a: ["מגדל דוד", "מגדל שלום", "מצודת אנטוניה", "מגדל הפעמון"], c: 0 },
+      { q: "מהו המקום הקדוש ביותר שבו מתפללים יהודים בירושלים?", a: ["הר הרצל", "הכותל המערבי", "קבר רחל", "הר הצופים"], c: 1 },
+      { q: "מה שמה של מערכת התחבורה המסילתית שנפתחה בירושלים ב־2011?", a: ["הרכבת הקלה", "המטרו", "הרכבת התחתית", "הרכבת הכבדה"], c: 0 },
+      { q: "מה שמו של אתר ההנצחה הלאומי לשואה, הנמצא בירושלים?", a: ["בית התפוצות", "יד ושם", "מוזיאון הכנסת", "היכל הזיכרון"], c: 1 },
+      { q: "מהו המוזיאון הלאומי הגדול של ישראל, השוכן בירושלים?", a: ["מוזיאון תל אביב", "מוזיאון ישראל", "מוזיאון המדע", "מגדל דוד"], c: 1 },
+      { q: "היכן יושבת הכנסת?", a: ["בגבעת רם, ירושלים", "ברמת גן", "בהר הצופים", "בעיר העתיקה"], c: 0 },
+      { q: "מה שמו של המדרחוב המרכזי והוותיק במרכז ירושלים?", a: ["רחוב הרצל", "רחוב בן יהודה", "רחוב אגריפס", "רחוב הנביאים"], c: 1 },
+      { q: "מה שמו של בית החולים בירושלים המפורסם בחלונות הוויטראז׳ של שאגאל?", a: ["שערי צדק", "הדסה עין כרם", "ביקור חולים", "אלישע"], c: 1 },
+      { q: "באיזה כלי תוקעים בראש השנה?", a: ["חצוצרה", "שופר", "חליל", "תוף"], c: 1 },
+      { q: "מהו היום הקדוש ביותר בלוח השנה היהודי?", a: ["ראש השנה", "יום הכיפורים", "שמחת תורה", "ט״ו בשבט"], c: 1 },
+      { q: "כמה ימים נמשך חג הסוכות בארץ ישראל?", a: ["שלושה", "חמישה", "שבעה", "תשעה"], c: 2 },
+      { q: "כמה מינים כוללת מצוות ארבעת המינים?", a: ["שניים", "שלושה", "ארבעה", "חמישה"], c: 2 },
+      { q: "איזה חג חותם את חג הסוכות?", a: ["פורים", "שמחת תורה", "חנוכה", "ל״ג בעומר"], c: 1 },
+      { q: "על שם מי נקרא אצטדיון הכדורגל הגדול בירושלים?", a: ["טדי קולק", "יצחק רבין", "תיאודור הרצל", "דוד בן־גוריון"], c: 0 },
+      { q: "מה שמה של האקדמיה לאמנות ועיצוב בירושלים?", a: ["שנקר", "בצלאל", "ויצו", "מנשר"], c: 1 },
+      { q: "באיזה רחוב שוכן שוק מחנה יהודה?", a: ["רחוב יפו", "רחוב אגריפס", "רחוב המלך ג׳ורג׳", "רחוב הנביאים"], c: 1 },
+      { q: "באיזה רחוב בירושלים נמצאת מעון ראש הממשלה?", a: ["בלפור", "רוטשילד", "קפלן", "הרצל"], c: 0 },
+      { q: "איזה מלון היסטורי בירושלים פוצץ בשנת 1946?", a: ["מלון המלך דוד", "מלון ימק״א", "מלון אמריקן קולוני", "מלון פאלאס"], c: 0 },
+      { q: "איזה עץ מופיע בסמל עיריית ירושלים ומסמל שלום?", a: ["ארז", "זית", "תמר", "שקד"], c: 1 },
+      { q: "מה שמו של הגן הלאומי שבו נחשפה ירושלים הקדומה, מדרום לחומות?", a: ["גן סאקר", "עיר דוד", "גן העצמאות", "פארק המסילה"], c: 1 },
+      { q: "מה שמו של הפארק שנבנה על מסילת הרכבת הישנה של ירושלים?", a: ["פארק המסילה", "גן הפעמון", "פארק הצפורים", "גן הוורדים"], c: 0 },
+      { q: "מה שמו של הקמפוס השני של האוניברסיטה העברית, במערב העיר?", a: ["גבעת רם", "הר הצופים", "עין כרם", "מלחה"], c: 0 },
+      { q: "מי כתב את השיר ״ירושלים של זהב״?", a: ["נעמי שמר", "אהוד מנור", "יהורם גאון", "רחל המשוררת"], c: 0 },
+      /* ★ */ { q: "מהי העיר הגדולה בישראל במספר תושבים?", a: ["תל אביב", "ירושלים", "חיפה", "ראשון לציון"], c: 1 },
+      /* ★ */ { q: "לבני כמה דתות מקודשת ירושלים?", a: ["אחת", "שתיים", "שלוש", "ארבע"], c: 2 },
+      /* ★ */ { q: "מה מספרו של הכביש הראשי המוביל ממרכז הארץ לירושלים?", a: ["כביש 1", "כביש 6", "כביש 4", "כביש 40"], c: 0 },
+      /* ★ */ { q: "לאיזה כיוון פונים המתפללים היהודים בתפילה?", a: ["לכיוון ירושלים", "לכיוון צפון", "לכיוון הים", "לכיוון מערב"], c: 0 },
+      /* ★ */ { q: "אילו שתי קבוצות הספורט הירושלמיות הן המוכרות ביותר?", a: ["בית״ר והפועל ירושלים", "מכבי וצפרירים", "הכוח והשחר", "אליצור ואיחוד"], c: 0 },
+      /* ★ */ { q: "איזה אירוע המוני נערך בירושלים מדי שנה בחול המועד סוכות?", a: ["מצעד ירושלים", "מרתון ירושלים", "פסטיבל האור", "יריד המזרח"], c: 0 },
+      /* ★ */ { q: "בין אילו שני ימים שוכנת ירושלים?", a: ["הים התיכון וים המלח", "הים התיכון וים סוף", "ים המלח והכנרת", "ים סוף והכנרת"], c: 0 },
+      /* ★ */ { q: "מהו הר המוריה?", a: ["ההר שבו נעקד יצחק ועליו נבנה בית המקדש", "ההר שעליו ניתנה התורה", "ההר שממערב לעיר העתיקה", "הר הזיתים"], c: 0 }
+    ],
+    medium: [
+      /* ★ */ { q: "מה שם השכונה היהודית הראשונה שהוקמה מחוץ לחומות?", a: ["נחלת שבעה", "משכנות שאננים", "מאה שערים", "ימין משה"], c: 1 },
+      /* ★ */ { q: "באיזו שנה הוקמה משכנות שאננים, השכונה הראשונה מחוץ לחומות?", a: ["1820", "1860", "1890", "1910"], c: 1 },
+      /* ★ */ { q: "מה היה תפקידו של מוטה גור במלחמת ששת הימים?", a: ["רמטכ״ל", "מפקד חטיבת הצנחנים 55", "אלוף פיקוד המרכז", "שר הביטחון"], c: 1 },
+      /* ★ */ { q: "מה שמה של הנקבה העתיקה שחצב המלך חזקיהו לקראת המצור?", a: ["אמת המים של פילטוס", "נקבת השילוח", "מנהרות הכותל", "בריכת הסולטן"], c: 1 },
+      /* ★ */ { q: "כמה שערים יש בחומת העיר העתיקה?", a: ["שישה", "שבעה", "שמונה", "עשרה"], c: 2 },
+      /* ★ */ { q: "מה שמו של ראש העיר שפיתח את ירושלים אחרי מלחמת ששת הימים?", a: ["טדי קולק", "מרדכי איש שלום", "אהוד אולמרט", "דניאל אוסטר"], c: 0 },
+      /* ★ */ { q: "כמה שנים כיהן טדי קולק כראש עיריית ירושלים?", a: ["12", "20", "28", "35"], c: 2 },
+      /* ★ */ { q: "איזה בעל חיים מופיע בסמל עיריית ירושלים?", a: ["נשר", "אריה", "יונה", "צבי"], c: 1 },
+      /* ★ */ { q: "מה מקיף את האריה בסמל עיריית ירושלים משני צדדיו?", a: ["ענפי זית", "שיבולים", "מנורות", "כוכבים"], c: 0 },
+      /* ★ */ { q: "באיזו שכונה בירושלים שוכן בית הנשיא?", a: ["רחביה", "טלביה", "בקעה", "ימין משה"], c: 1 },
+      /* ★ */ { q: "מי העניק ליצחק הרצוג את הכינוי ״בוז׳י״?", a: ["אביו חיים", "אמו אורה", "חבריו בצבא", "סבו הרב"], c: 1 },
+      /* ★ */ { q: "מתי נפתח בית הנשיא מדי שנה ב״בית פתוח״ לכלל הציבור?", a: ["בחול המועד סוכות", "ביום העצמאות", "בראש השנה", "בחנוכה"], c: 0 },
+      { q: "מי יזם ומימן את הקמת השכונה הראשונה מחוץ לחומות?", a: ["אליעזר בן־יהודה", "משה מונטיפיורי", "הברון רוטשילד", "תיאודור הרצל"], c: 1 },
+      { q: "איזה מבנה סימן את משכנות שאננים והפך לסמל השכונה?", a: ["מגדל שעון", "טחנת רוח", "בית כנסת מכיפה", "מגדל מים"], c: 1 },
+      { q: "באיזה חג נחנך בית המקדש הראשון?", a: ["פסח", "שבועות", "סוכות", "ראש השנה"], c: 2 },
+      { q: "מה שמו של השער האטום בחומה המזרחית של הר הבית?", a: ["שער האשפות", "שער הרחמים", "שער שכם", "שער ציון"], c: 1 },
+      { q: "באיזו שנה אוחדה ירושלים במלחמת ששת הימים?", a: ["1948", "1956", "1967", "1973"], c: 2 },
+      { q: "על איזה הר שוכן בית הקברות הצבאי הלאומי?", a: ["הר הרצל", "הר הצופים", "הר הזיתים", "הר המנוחות"], c: 0 },
+      { q: "איזו אוניברסיטה נחנכה על הר הצופים בשנת 1925?", a: ["הטכניון", "האוניברסיטה העברית", "בצלאל", "אוניברסיטת בר אילן"], c: 1 },
+      { q: "מה שמו של המבנה במוזיאון ישראל שבו מוצגות מגילות מדבר יהודה?", a: ["היכל הספר", "אגף יהדות", "גן הפסלים", "ביתן התרבות"], c: 0 },
+      { q: "באיזו שנה הגיעה לירושלים הרכבת הראשונה?", a: ["1850", "1870", "1892", "1920"], c: 2 },
+      { q: "מה שמו של מתחם הבילוי שהוקם בתחנת הרכבת ההיסטורית של ירושלים?", a: ["התחנה הראשונה", "שוק הפשפשים", "מתחם הרכבת", "המושבה"], c: 0 },
+      { q: "מי תרם את המנורה הגדולה הניצבת מול הכנסת?", a: ["הפרלמנט הבריטי", "הקונגרס האמריקני", "הסוכנות היהודית", "משפחת רוטשילד"], c: 0 },
+      { q: "איזו שכונה ירושלמית ידועה בשעריה הנסגרים בשבת?", a: ["נחלאות", "מאה שערים", "רחביה", "בית הכרם"], c: 1 },
+      { q: "מהי ״בריכת הסולטן״ שלמרגלות חומות העיר העתיקה?", a: ["בריכת מים עתיקה", "בריכת שחייה עות׳מאנית", "מקווה קדום", "אגם מלאכותי מודרני"], c: 0 },
+      { q: "מה שמו של הכפר במערב ירושלים המפורסם במעיינו ובכנסיותיו?", a: ["אבו גוש", "עין כרם", "מוצא", "ליפתא"], c: 1 },
+      { q: "מה שמה של הדרך העוקפת שנפרצה כדי לשבור את המצור על ירושלים ב־1948?", a: ["דרך בורמה", "דרך האבות", "דרך המים", "דרך הגבורה"], c: 0 },
+      { q: "מה שמו של הקרב המכריע על הדרך לירושלים במלחמת העצמאות?", a: ["קרב הקסטל", "קרב לטרון", "קרב מלחה", "קרב נבי סמואל"], c: 0 },
+      { q: "מה ניצב לאורך הכביש בשער הגיא לזכר מלחמת העצמאות?", a: ["שלדי משוריינים", "עמודי אבן", "אנדרטת ברונזה", "שורת ארזים"], c: 0 },
+      { q: "על שם מי נקראת תחנת הרכבת המהירה בירושלים?", a: ["יצחק נבון", "זלמן שזר", "חיים הרצוג", "יצחק בן־צבי"], c: 0 },
+      { q: "מי היה נשיאה הראשון של מדינת ישראל?", a: ["חיים ויצמן", "יצחק בן־צבי", "זלמן שזר", "דוד בן־גוריון"], c: 0 },
+      { q: "איזה ארגון בינלאומי הכריז על העיר העתיקה כאתר מורשת עולמית?", a: ["האו״ם", "אונסק״ו", "הצלב האדום", "הבנק העולמי"], c: 1 },
+      { q: "מהו ״הר הזיכרון״ בירושלים?", a: ["ההר שעליו שוכן יד ושם", "הר הזיתים", "הר הצופים", "הר ציון"], c: 0 },
+      { q: "איזה אתר בהר ציון מקודש ליהודים כמקום קבורתו של דוד המלך?", a: ["קבר דוד", "מערת המכפלה", "קבר רחל", "קבר שמואל"], c: 0 },
+      { q: "מה שמו של הרובע הרביעי בעיר העתיקה, לצד היהודי, המוסלמי והנוצרי?", a: ["הרובע הארמני", "הרובע היווני", "הרובע הרוסי", "הרובע הטורקי"], c: 0 },
+      /* ★ */ { q: "אילו מוסדות ממלכתיים חייבים לשכון בירושלים על פי חוק?", a: ["הכנסת, בית הנשיא ובית המשפט העליון", "הבורסה ובנק ישראל", "המטה הכללי של צה״ל", "משרד החוץ בלבד"], c: 0 },
+      /* ★ */ { q: "מה היה שמה של ירושלים לפני שדוד כבש אותה?", a: ["שילה", "יבוס", "שכם", "בית אל"], c: 1 },
+      /* ★ */ { q: "מהו שמה הקדום ביותר של ירושלים, המופיע בכתבים מצריים?", a: ["אורשלם", "יבוס", "מוריה", "עיר דוד"], c: 0 },
+      /* ★ */ { q: "מי שלט בירושלים המזרחית בין השנים 1948 ל־1967?", a: ["מצרים", "ירדן", "בריטניה", "סוריה"], c: 1 },
+      /* ★ */ { q: "מה שמו של המעבר שחיבר בין שני חלקיה של ירושלים החצויה?", a: ["שער מנדלבאום", "שער יפו", "מעבר אלנבי", "שער הפרחים"], c: 0 },
+      /* ★ */ { q: "השלימו את הפסוק: ״אם אשכחך ירושלים...״", a: ["תשכח ימיני", "ידבק לשוני לחכי", "תאבד נפשי", "יבשה נשמתי"], c: 0 },
+      /* ★ */ { q: "מהו ״שביל ירושלים״?", a: ["מסלול הליכה מסומן המקיף את העיר", "רחוב עתיק ברובע היהודי", "מנהרה מתחת לכותל", "קו הרכבת הקלה"], c: 0 },
+      /* ★ */ { q: "מה היה מספרו של קו האוטובוס התיירותי ״סובב ירושלים״?", a: ["1", "18", "99", "77"], c: 2 },
+      /* ★ */ { q: "מי ביצעה לראשונה את ״ירושלים של זהב״ בפסטיבל הזמר 1967?", a: ["שולי נתן", "חוה אלברשטיין", "יפה ירקוני", "אסתר עופרים"], c: 0 }
+    ],
+    hard: [
+      { q: "כמה פעמים בערך מופיע השם ״ירושלים״ בתנ״ך?", a: ["69", "349", "669", "1,240"], c: 2 },
+      { q: "לפי חז״ל, כמה שמות יש לירושלים?", a: ["שבעה", "שנים־עשר", "שבעים", "מאה"], c: 2 },
+      { q: "באיזו שנה לספירה חרב בית המקדש השני?", a: ["שנת 70", "שנת 132", "שנת 135", "שנת 200"], c: 0 },
+      { q: "מי התיר ליהודים לשוב לירושלים ולבנות את בית המקדש השני?", a: ["נבוכדנצר", "כורש מלך פרס", "אלכסנדר מוקדון", "אנטיוכוס"], c: 1 },
+      { q: "מה היה שמה של ירושלים לאחר דיכוי מרד בר־כוכבא?", a: ["קיסריה", "איליה קפיטולינה", "פלביה", "אנטיוכיה"], c: 1 },
+      { q: "כמה תושבים חיים בירושלים כיום, בקירוב?", a: ["כ־400 אלף", "כ־700 אלף", "כמיליון", "כמיליון וחצי"], c: 2 },
+      { q: "איזה טקס שמחה נערך בעזרת הנשים בלילות חג הסוכות?", a: ["הקהל", "שמחת בית השואבה", "ניסוך היין", "ברכת כהנים"], c: 1 },
+      { q: "מה גובהה של ירושלים מעל פני הים, בקירוב?", a: ["כ־300 מטר", "כ־500 מטר", "כ־800 מטר", "כ־1,200 מטר"], c: 2 },
+      { q: "מי היה המושל הבריטי שהנהיג ב־1918 את התקנה לצפות את בנייני ירושלים באבן?", a: ["אדמונד אלנבי", "רונלד סטורס", "הרברט סמואל", "ארתור ווקופ"], c: 1 },
+      { q: "איזה מעיין סיפק את מימיה של ירושלים הקדומה?", a: ["מעיין הגיחון", "עין כרם", "מעיין השילוח", "עין פארה"], c: 0 },
+      { q: "מה שמו של השער שנפרץ אחרון בחומת העיר העתיקה, במאה ה־19?", a: ["שער יפו", "השער החדש", "שער הפרחים", "שער ציון"], c: 1 },
+      { q: "איזה נחל מפריד בין העיר העתיקה להר הזיתים?", a: ["נחל צופים", "נחל קדרון", "נחל שורק", "נחל רפאים"], c: 1 },
+      { q: "מי היה ראש העיר היהודי הראשון של ירושלים לאחר קום המדינה?", a: ["דניאל אוסטר", "גרשון אגרון", "יצחק קריב", "מרדכי איש שלום"], c: 0 },
+      { q: "באיזו שנה הכריז דוד בן־גוריון על ירושלים כבירת ישראל?", a: ["1948", "1949", "1950", "1967"], c: 1 },
+      { q: "מה היה ה״קארדו״ שנחשף ברובע היהודי?", a: ["בית מרחץ", "רחוב ראשי רומי־ביזנטי", "מקווה עתיק", "שער סתרים"], c: 1 },
+      { q: "מה אורכה המשוער של נקבת השילוח?", a: ["כ־120 מטר", "כ־290 מטר", "כ־530 מטר", "כ־900 מטר"], c: 2 },
+      { q: "איזו מלכה התגיירה, עלתה לירושלים בימי בית שני ובנתה בה ארמונות?", a: ["הלני המלכה", "שלומציון", "אסתר", "מרים החשמונאית"], c: 0 },
+      { q: "איזה מרד הסתיים בחורבן בית המקדש השני?", a: ["מרד החשמונאים", "המרד הגדול", "מרד בר־כוכבא", "מרד התפוצות"], c: 1 },
+      { q: "מה שמו של בית הכנסת המרכזי ברובע היהודי ששוחזר ונחנך מחדש ב־2010?", a: ["תפארת ישראל", "בית הכנסת ״החורבה״", "הרמב״ן", "ישועות יעקב"], c: 1 },
+      { q: "מהו ״הכותל הקטן״?", a: ["קטע של הכותל המערבי ברובע המוסלמי", "חלק מחומת דוד", "שריד מחומת הצלבנים", "קיר בריכת השילוח"], c: 0 },
+      { q: "איזה שליט מוסלמי כבש את ירושלים מידי הצלבנים בשנת 1187?", a: ["צלאח א־דין", "עומר אבן אל־ח׳טאב", "סולימאן המפואר", "עבד אל־מלכ"], c: 0 },
+      { q: "באיזו שנה כבשו הצלבנים את ירושלים?", a: ["1071", "1099", "1187", "1291"], c: 1 },
+      { q: "מה שמה של האבן שעליה, לפי המסורת, עמד קודש הקודשים?", a: ["אבן השתייה", "אבן הפינה", "אבן הזוחלת", "אבן הנגף"], c: 0 },
+      { q: "מי בנה את כיפת הסלע על הר הבית?", a: ["עבד אל־מלכ", "הורדוס", "צלאח א־דין", "סולימאן המפואר"], c: 0 },
+      { q: "כמה שנים נמשכה בניית בית המקדש הראשון לפי המקרא?", a: ["שלוש", "שבע", "שתים־עשרה", "עשרים"], c: 1 },
+      { q: "מה נחשף חקוק בדופן נקבת השילוח ומספר על חציבתה?", a: ["כתובת השילוח", "לוח חזקיהו", "מגילת המים", "חותם הכהנים"], c: 0 },
+      { q: "מה שמה של החומה העבה שנחשפה ברובע היהודי ומיוחסת לחזקיהו?", a: ["החומה הרחבה", "חומת נחמיה", "החומה השלישית", "חומת אופל"], c: 0 },
+      { q: "על שם מי נקרא ״פיר וורן״ שבעיר דוד?", a: ["חוקר בריטי מהמאה ה־19", "מפקד רומי", "ארכיאולוג ישראלי", "מהנדס עות׳מאני"], c: 0 },
+      { q: "מה שמה של המצודה שבנה הורדוס בפינה הצפון־מערבית של הר הבית?", a: ["מצודת אנטוניה", "מצודת ציון", "מגדל פצאל", "מצודת דוד"], c: 0 },
+      { q: "איזה נביא כינה את ירושלים ״עיר הצדק, קריה נאמנה״?", a: ["ירמיהו", "ישעיהו", "יחזקאל", "זכריה"], c: 1 },
+      /* ★ */ { q: "לפי המדרש, משילוב אילו שני שמות נוצר השם ״ירושלים״?", a: ["״יראה״ ו״שלם״", "״ירש״ ו״עליון״", "״ירושה״ ו״שלום״", "״יראון״ ו״שלים״"], c: 0 },
+      /* ★ */ { q: "מדוע בחר דוד דווקא בעיר היבוסית למרכז שלטונו?", a: ["כי לא הייתה שייכת לאף אחד משבטי ישראל", "כי הייתה העיר העשירה בארץ", "כי שכנה על הים", "כי היה בה מקדש קדום"], c: 0 },
+      /* ★ */ { q: "מדוע לא בנה דוד בעצמו את בית המקדש?", a: ["כי היה איש מלחמות ושפך דם", "כי לא היה לו כסף", "כי לא הספיק בימי חייו", "כי הנביאים התנגדו"], c: 0 },
+      /* ★ */ { q: "מי כבש את ירושלים מידי היהודים והחריב את בית המקדש הראשון?", a: ["הבבלים", "הרומאים", "האשורים", "הפרסים"], c: 0 },
+      /* ★ */ { q: "כיצד מופיעה ירושלים בחמשת חומשי התורה?", a: ["אינה נזכרת בשמה כלל", "נזכרת פעם אחת", "נזכרת בכל חומש", "נזכרת רק בספר דברים"], c: 0 }
+    ]
+  };
+
+var LETTERS=["א","ב","ג","ד"];
+var $=function(i){return document.getElementById(i)};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+
+var deck=[],idx=-1,phase="lobby",skew=0,tick=null,poll=null,lastCounts=null;
+
+function api(path,body){
+  var u=LIVE_URL+(LIVE_URL.indexOf("?")>-1?"&":"?")+path;
+  var o={cache:"no-store"};
+  if(body){o.method="POST";o.body=JSON.stringify(body)}
+  return fetch(u,o).then(function(r){return r.json()});
+}
+function fail(m){$("err").textContent=m||""}
+
+function buildDeck(){
+  var e=shuffle(BANK.easy),m=shuffle(BANK.medium),h=shuffle(BANK.hard);
+  var ne=Math.ceil(ROUND*0.4),nm=Math.ceil(ROUND*0.4),nh=ROUND-ne-nm;
+  deck=e.slice(0,ne).concat(m.slice(0,nm),h.slice(0,nh));
+}
+
+function show(id){["s-lobby","s-q","s-board"].forEach(function(s){$(s).classList.toggle("on",s===id)})}
+
+function btn(label,fn,ghost){
+  var b=document.createElement("button");
+  b.className="btn"+(ghost?" ghost":"");b.textContent=label;
+  b.addEventListener("click",fn);return b;
+}
+function setControls(){
+  var c=$("controls");c.innerHTML="";
+  if(phase==="lobby"){
+    c.appendChild(btn("התחלת המשחק",start));
+    c.appendChild(btn("איפוס",reset,true));
+  } else if(phase==="ask"){
+    c.appendChild(btn("חשיפת התשובה",reveal));
+  } else if(phase==="reveal"){
+    c.appendChild(btn(idx+1>=deck.length?"סיום והצגת המנצח":"השאלה הבאה",next));
+  } else if(phase==="end"){
+    c.appendChild(btn("משחק חדש",reset));
+  }
+}
+
+function reset(){
+  buildDeck();idx=-1;phase="lobby";
+  api("a=host",{cmd:"reset"}).then(function(){show("s-lobby");setControls()}).catch(function(){fail("אין קשר לשרת")});
+}
+function start(){ idx=-1; next(); }
+
+function next(){
+  idx++;
+  if(idx>=deck.length){
+    phase="end";
+    api("a=host",{cmd:"end"}).then(function(st){paintBoard(st,true);show("s-board");setControls()});
+    return;
+  }
+  var q=deck[idx],order=shuffle([0,1,2,3]);
+  var payload={cmd:"ask",idx:idx,total:deck.length,seconds:SECONDS,
+    q:q.q,a:order.map(function(o){return q.a[o]}),c:order.indexOf(q.c)};
+  phase="ask";lastCounts=null;
+  api("a=host",payload).then(function(st){
+    paintQuestion(payload,st);show("s-q");setControls();
+  }).catch(function(){fail("שליחת השאלה נכשלה")});
+}
+function reveal(){
+  phase="reveal";
+  api("a=host",{cmd:"reveal"}).then(function(st){
+    paintReveal(st);setControls();
+    setTimeout(function(){ if(phase==="reveal"){paintBoard(st,false);show("s-board")} },3500);
+  });
+}
+
+var cur=null;
+function paintQuestion(p,st){
+  cur=p;
+  $("qtext").textContent=p.q;
+  $("qi").textContent=p.idx+1;$("qn").textContent=p.total;
+  var box=$("opts");box.className="opts";box.innerHTML="";
+  p.a.forEach(function(txt,i){
+    var d=document.createElement("div");d.className="opt";d.dataset.i=i;
+    d.innerHTML='<span class="fill"></span><span class="tag">'+LETTERS[i]+'</span><span class="t">'+esc(txt)+'</span><span class="n"></span>';
+    box.appendChild(d);
+  });
+  $("answered").textContent="0";
+  $("ptotal").textContent=(st&&st.players?st.players.length:0);
+  startClock(st.endsAt);
+}
+function startClock(endsAt){
+  clearInterval(tick);
+  tick=setInterval(function(){
+    var left=Math.max(0,Math.round((endsAt-(Date.now()+skew))/1000));
+    $("clock").textContent=left+"״";
+    $("trackbar").style.width=(left/SECONDS*100)+"%";
+    $("track").classList.toggle("warn",left<=5);
+    if(left<=0){clearInterval(tick); if(phase==="ask") reveal();}
+  },250);
+}
+function paintReveal(st){
+  clearInterval(tick);
+  var box=$("opts");box.classList.add("revealed");
+  var total=(st.counts||[]).reduce(function(a,b){return a+b},0)||1;
+  [].forEach.call(box.children,function(d){
+    var i=Number(d.dataset.i),n=(st.counts&&st.counts[i])||0;
+    d.querySelector(".n").textContent=n;
+    d.querySelector(".fill").style.width=(n/total*100)+"%";
+    if(i===cur.c)d.classList.add("right");else d.classList.add("dim");
+  });
+}
+function paintBoard(st,final){
+  var rows=(st.players||[]).slice().sort(function(a,b){return b.score-a.score});
+  $("btitle").textContent=final?"המנצחים":"הניקוד עד כה";
+  $("board").innerHTML=rows.slice(0,12).map(function(r,i){
+    return '<li><span class="r'+(i<3?" m"+(i+1):"")+'">'+(i+1)+'</span>'+
+           '<span class="nm">'+esc(r.name)+'</span>'+
+           '<span class="gain">'+(r.gain?"+"+r.gain:"")+'</span>'+
+           '<span class="pt">'+r.score+'</span></li>';
+  }).join("");
+}
+
+function paintLobby(st){
+  var ps=st.players||[];
+  $("chips").innerHTML=ps.map(function(p){return '<span class="chip">'+esc(p.name)+'</span>'}).join("");
+  $("lcount").textContent=ps.length?ps.length+" שחקנים מחוברים":"מחכים לשחקנים…";
+}
+
+function loop(){
+  api("a=state").then(function(st){
+    fail("");
+    skew=st.now-Date.now();
+    $("meta").textContent=(st.players||[]).length+" שחקנים";
+    if(phase==="lobby")paintLobby(st);
+    else if(phase==="ask"){
+      $("answered").textContent=st.answered||0;
+      $("ptotal").textContent=(st.players||[]).length;
+      if((st.players||[]).length&&st.answered>=st.players.length)reveal();
+    }
+    else if(phase==="reveal"&&$("s-board").classList.contains("on"))paintBoard(st,false);
+  }).catch(function(){fail("אין קשר לשרת — בודקים שוב")});
+}
+
+/* init */
+var pu=PLAYER_URL||location.href.replace(/[^\/]*$/,"play.html");
+$("joinurl").textContent=pu.replace(/^https?:\/\//,"");
+try{ new QRCode($("qr"),{text:pu,width:190,height:190,correctLevel:QRCode.CorrectLevel.M}); }
+catch(e){ $("qr").style.display="none"; }
+
+if(!LIVE_URL){ fail("חסרה כתובת ה-Worker בשורת LIVE_URL"); }
+buildDeck();setControls();
+loop();poll=setInterval(loop,1500);
+})();
+</script>
+</body>
+</html>
