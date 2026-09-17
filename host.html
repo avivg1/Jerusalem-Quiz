@@ -310,7 +310,7 @@ function buildDeck(){
   deck=e.slice(0,ne).concat(m.slice(0,nm),h.slice(0,nh));
 }
 
-var OFFLINE_MS=12000;
+var OFFLINE_MS=5000;
 function isOn(st,p){return (st.now-(p.seen||0))<OFFLINE_MS}
 function onlineCount(st){var n=0;(st.players||[]).forEach(function(p){if(isOn(st,p))n++});return n}
 function show(id){["s-lobby","s-q","s-board"].forEach(function(s){$(s).classList.toggle("on",s===id)})}
@@ -468,7 +468,7 @@ catch(e){ $("qr").style.display="none"; }
 
 if(!LIVE_URL){ fail("חסרה כתובת ה-Worker בשורת LIVE_URL"); }
 buildDeck();setControls();
-loop();poll=setInterval(loop,1500);
+loop();poll=setInterval(loop,1200);
 })();
 </script>
 </body>
