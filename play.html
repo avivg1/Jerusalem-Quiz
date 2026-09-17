@@ -247,8 +247,26 @@ function loop(){
   }).catch(function(){fail("אין קשר לשרת")});
 }
 
+/* הודעת פרידה מיידית בעת סגירה, מעבר לרקע או נעילת המכשיר.
+   sendBeacon נשלח גם כשהלשונית כבר נסגרת. */
+function bye(){
+  if(!me||!LIVE_URL)return;
+  try{
+    var u=LIVE_URL+(LIVE_URL.indexOf("?")>-1?"&":"?")+"a=bye";
+    var blob=new Blob([JSON.stringify({name:me})],{type:"text/plain"});
+    if(navigator.sendBeacon)navigator.sendBeacon(u,blob);
+    else api("a=bye",{name:me}).catch(function(){});
+  }catch(e){}
+}
+window.addEventListener("pagehide",bye);
+window.addEventListener("beforeunload",bye);
+document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState==="hidden")bye();
+  else loop();
+});
+
 if(!LIVE_URL)fail("חסרה כתובת ה-Worker בשורת LIVE_URL");
-setInterval(loop,1500);
+setInterval(loop,1200);
 })();
 </script>
 </body>
