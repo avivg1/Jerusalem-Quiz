@@ -40,6 +40,10 @@
   .chip{background:rgba(227,167,44,.16);border:1px solid rgba(227,167,44,.5);border-radius:999px;
         padding:8px 16px;font-size:clamp(14px,1.6vw,20px);animation:pop .3s ease both}
   @keyframes pop{from{opacity:0;transform:scale(.8)}}
+  .chip.off{opacity:.35;border-style:dashed}
+  .board li.off{opacity:.45}
+  .board .off-tag{flex:none;font-size:.6em;color:var(--dim);border:1px solid rgba(239,226,196,.3);
+                  border-radius:999px;padding:3px 10px}
   .count{font-size:clamp(16px,2vw,24px);color:var(--dim);margin-top:14px}
 
   /* question */
@@ -306,6 +310,9 @@ function buildDeck(){
   deck=e.slice(0,ne).concat(m.slice(0,nm),h.slice(0,nh));
 }
 
+var OFFLINE_MS=12000;
+function isOn(st,p){return (st.now-(p.seen||0))<OFFLINE_MS}
+function onlineCount(st){var n=0;(st.players||[]).forEach(function(p){if(isOn(st,p))n++});return n}
 function show(id){["s-lobby","s-q","s-board"].forEach(function(s){$(s).classList.toggle("on",s===id)})}
 
 function btn(label,fn,ghost){
@@ -380,7 +387,7 @@ function paintQuestion(p,st){
     box.appendChild(d);
   });
   $("answered").textContent="0";
-  $("ptotal").textContent=(st&&st.players?st.players.length:0);
+  $("ptotal").textContent=(st?onlineCount(st):0);
   startClock(st.endsAt);
 }
 function startClock(endsAt){
@@ -411,12 +418,14 @@ function paintReveal(st){
 var sigB="",sigC="",sigM="";
 function paintBoard(st,final){
   var rows=(st.players||[]).slice().sort(function(a,b){return b.score-a.score});
-  var sig=final+"|"+rows.map(function(r){return r.name+":"+r.score+":"+r.gain}).join("|");
+  var sig=final+"|"+rows.map(function(r){return r.name+":"+r.score+":"+r.gain+":"+(isOn(st,r)?1:0)}).join("|");
   if(sig===sigB)return; sigB=sig;
   $("btitle").textContent=final?"המנצחים":"הניקוד עד כה";
   $("board").innerHTML=rows.slice(0,12).map(function(r,i){
-    return '<li><span class="r'+(i<3?" m"+(i+1):"")+'">'+(i+1)+'</span>'+
+    var off=!isOn(st,r);
+    return '<li class="'+(off?"off":"")+'"><span class="r'+(i<3?" m"+(i+1):"")+'">'+(i+1)+'</span>'+
            '<span class="nm">'+esc(r.name)+'</span>'+
+           (off?'<span class="off-tag">מנותק</span>':'')+
            '<span class="gain">'+(r.gain?"+"+r.gain:"")+'</span>'+
            '<span class="pt">'+r.score+'</span></li>';
   }).join("");
@@ -424,24 +433,28 @@ function paintBoard(st,final){
 
 function paintLobby(st){
   var ps=st.players||[];
-  var sig=ps.map(function(p){return p.name}).join("|");
+  var sig=ps.map(function(p){return p.name+(isOn(st,p)?"1":"0")}).join("|");
   if(sig===sigC)return; sigC=sig;
-  $("chips").innerHTML=ps.map(function(p){return '<span class="chip">'+esc(p.name)+'</span>'}).join("");
-  $("lcount").textContent=ps.length?ps.length+" שחקנים מחוברים":"מחכים לשחקנים…";
+  $("chips").innerHTML=ps.map(function(p){
+    return '<span class="chip'+(isOn(st,p)?"":" off")+'">'+esc(p.name)+'</span>'}).join("");
+  var on=onlineCount(st);
+  $("lcount").textContent=on?on+" שחקנים מחוברים":"מחכים לשחקנים…";
 }
 
 function loop(){
   api("a=state").then(function(st){
     fail("");
     skew=st.now-Date.now();
-    var mt=(st.players||[]).length+" שחקנים";
+    var off=(st.players||[]).length-onlineCount(st);
+    var mt=onlineCount(st)+" שחקנים"+(off>0?" · "+off+" מנותקים":"");
     if(mt!==sigM){sigM=mt;$("meta").textContent=mt}
     if(phase==="lobby")paintLobby(st);
     else if(phase==="ask"){
-      var an=String(st.answered||0),pt=String((st.players||[]).length);
+      var on=onlineCount(st);
+      var an=String(st.answered||0),pt=String(on);
       if($("answered").textContent!==an)$("answered").textContent=an;
       if($("ptotal").textContent!==pt)$("ptotal").textContent=pt;
-      if((st.players||[]).length&&st.answered>=st.players.length)reveal();
+      if(on&&(st.answered||0)>=on)reveal();
     }
     else if(phase==="reveal"&&$("s-board").classList.contains("on"))paintBoard(st,false);
   }).catch(function(){fail("אין קשר לשרת — בודקים שוב")});
