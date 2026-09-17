@@ -220,10 +220,13 @@ function paintReveal(st){
 function paintEnd(st){
   clearInterval(tick);clearTimeout(revealTimer);
   var rows=(st.players||[]).slice().sort(function(a,b){return b.score-a.score});
+  var mine=rows.filter(function(p){return p.name===me})[0];
+  if(mine)myScore=mine.score;                    // תמיד מהשרת, לא מעותק מקומי
+  $("score").textContent=myScore+" נק׳";
   var pos=rows.map(function(r){return r.name}).indexOf(me)+1;
-  $("waittitle").textContent=pos===1?"ניצחת":"מקום "+pos;
+  $("waittitle").textContent=pos===1?"ניצחת":(pos?"מקום "+pos:"המשחק הסתיים");
   $("waittext").className="";
-  $("waittext").textContent=myScore+" נקודות מתוך "+rows.length+" שחקנים";
+  $("waittext").textContent=myScore+" נקודות"+(rows.length?" · "+rows.length+" שחקנים":"");
   show("s-wait");
 }
 
@@ -231,6 +234,7 @@ function loop(){
   if(!me)return;
   api("a=state&me="+encodeURIComponent(me)).then(function(st){
     fail("");skew=st.now-Date.now();lastState=st;
+    if(st.phase==="end"&&phase==="end")paintEnd(st);   // רענון מתמשך של התוצאה הסופית
     if(st.phase==="reveal"&&shownReveal===st.idx&&$("s-res").classList.contains("on")){
       var m=(st.players||[]).filter(function(p){return p.name===me})[0];
       if(m){myScore=m.score;$("score").textContent=myScore+" נק׳";
